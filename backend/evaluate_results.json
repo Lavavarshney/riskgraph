@@ -1,0 +1,328 @@
+{
+  "postgres_rows": 100000,
+  "database_dialect": "postgresql",
+  "ml_metrics": {
+    "accuracy": 0.9704,
+    "precision": 1.0,
+    "recall": 0.7486,
+    "f1_score": 0.8562,
+    "roc_auc": 0.9712,
+    "confusion_matrix": [
+      [
+        17645,
+        0
+      ],
+      [
+        592,
+        1763
+      ]
+    ],
+    "train_samples": 80000,
+    "test_samples": 20000,
+    "shap_ranking": [
+      {
+        "feature": "amount",
+        "importance": 2.5383
+      },
+      {
+        "feature": "account_age_minutes",
+        "importance": 1.5872
+      },
+      {
+        "feature": "average_customer_amount",
+        "importance": 0.6194
+      },
+      {
+        "feature": "failed_attempts_recent",
+        "importance": 0.6122
+      },
+      {
+        "feature": "ip_account_count",
+        "importance": 0.4766
+      },
+      {
+        "feature": "coupon_usage_count",
+        "importance": 0.2915
+      },
+      {
+        "feature": "country_change",
+        "importance": 0.1234
+      },
+      {
+        "feature": "transactions_last_10m",
+        "importance": 0.0375
+      },
+      {
+        "feature": "device_account_count",
+        "importance": 0.0211
+      },
+      {
+        "feature": "transactions_last_1m",
+        "importance": 0.0
+      },
+      {
+        "feature": "transactions_last_5m",
+        "importance": 0.0
+      },
+      {
+        "feature": "time_since_previous_transaction",
+        "importance": 0.0
+      },
+      {
+        "feature": "payment_method_age",
+        "importance": 0.0
+      },
+      {
+        "feature": "amount_deviation_from_customer_history",
+        "importance": 0.0
+      },
+      {
+        "feature": "refund_count",
+        "importance": 0.0
+      }
+    ],
+    "trained_at": "2026-09-02T11:10:28Z"
+  },
+  "stealth_evaluations": [
+    {
+      "tx_id": "tx_6",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 14,
+      "fraud_probability": 0.1365,
+      "decision": "ALLOW",
+      "customer_id": "cust_15119",
+      "device_id": "dev_992",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_5417",
+      "features": {
+        "amount": 66.0,
+        "account_age_minutes": 22743,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 738,
+        "customers_sharing_ip": 712,
+        "transactions_sharing_device": 757,
+        "transactions_sharing_ip": 733,
+        "related_fraud_transactions": 1279
+      }
+    },
+    {
+      "tx_id": "tx_37",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 14,
+      "fraud_probability": 0.136,
+      "decision": "ALLOW",
+      "customer_id": "cust_10670",
+      "device_id": "dev_994",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_3632",
+      "features": {
+        "amount": 173.8,
+        "account_age_minutes": 69030,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 694,
+        "customers_sharing_ip": 712,
+        "transactions_sharing_device": 719,
+        "transactions_sharing_ip": 733,
+        "related_fraud_transactions": 1251
+      }
+    },
+    {
+      "tx_id": "tx_42",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 20,
+      "fraud_probability": 0.1967,
+      "decision": "ALLOW",
+      "customer_id": "cust_11943",
+      "device_id": "dev_991",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_4726",
+      "features": {
+        "amount": 123.44,
+        "account_age_minutes": 36245,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 740,
+        "customers_sharing_ip": 756,
+        "transactions_sharing_device": 758,
+        "transactions_sharing_ip": 783,
+        "related_fraud_transactions": 1318
+      }
+    },
+    {
+      "tx_id": "tx_123",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 21,
+      "fraud_probability": 0.2054,
+      "decision": "ALLOW",
+      "customer_id": "cust_7683",
+      "device_id": "dev_994",
+      "ip_id": "ip_992",
+      "payment_method_id": "pm_14207",
+      "features": {
+        "amount": 45.44,
+        "account_age_minutes": 13230,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 694,
+        "customers_sharing_ip": 681,
+        "transactions_sharing_device": 719,
+        "transactions_sharing_ip": 698,
+        "related_fraud_transactions": 1221
+      }
+    },
+    {
+      "tx_id": "tx_189",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 17,
+      "fraud_probability": 0.1659,
+      "decision": "ALLOW",
+      "customer_id": "cust_17622",
+      "device_id": "dev_991",
+      "ip_id": "ip_992",
+      "payment_method_id": "pm_547",
+      "features": {
+        "amount": 119.98,
+        "account_age_minutes": 63476,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 740,
+        "customers_sharing_ip": 681,
+        "transactions_sharing_device": 758,
+        "transactions_sharing_ip": 698,
+        "related_fraud_transactions": 1259
+      }
+    },
+    {
+      "tx_id": "tx_194",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 13,
+      "fraud_probability": 0.1252,
+      "decision": "ALLOW",
+      "customer_id": "cust_17808",
+      "device_id": "dev_991",
+      "ip_id": "ip_992",
+      "payment_method_id": "pm_11598",
+      "features": {
+        "amount": 125.74,
+        "account_age_minutes": 41911,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 740,
+        "customers_sharing_ip": 681,
+        "transactions_sharing_device": 758,
+        "transactions_sharing_ip": 698,
+        "related_fraud_transactions": 1259
+      }
+    },
+    {
+      "tx_id": "tx_282",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 14,
+      "fraud_probability": 0.1354,
+      "decision": "ALLOW",
+      "customer_id": "cust_13120",
+      "device_id": "dev_994",
+      "ip_id": "ip_991",
+      "payment_method_id": "pm_10408",
+      "features": {
+        "amount": 157.15,
+        "account_age_minutes": 24382,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 694,
+        "customers_sharing_ip": 734,
+        "transactions_sharing_device": 719,
+        "transactions_sharing_ip": 760,
+        "related_fraud_transactions": 1267
+      }
+    },
+    {
+      "tx_id": "tx_300",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 11,
+      "fraud_probability": 0.1138,
+      "decision": "ALLOW",
+      "customer_id": "cust_12399",
+      "device_id": "dev_992",
+      "ip_id": "ip_991",
+      "payment_method_id": "pm_9102",
+      "features": {
+        "amount": 68.62,
+        "account_age_minutes": 15747,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 738,
+        "customers_sharing_ip": 734,
+        "transactions_sharing_device": 757,
+        "transactions_sharing_ip": 760,
+        "related_fraud_transactions": 1292
+      }
+    },
+    {
+      "tx_id": "tx_341",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 17,
+      "fraud_probability": 0.1715,
+      "decision": "ALLOW",
+      "customer_id": "cust_8133",
+      "device_id": "dev_993",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_5943",
+      "features": {
+        "amount": 121.92,
+        "account_age_minutes": 73334,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 712,
+        "customers_sharing_ip": 756,
+        "transactions_sharing_device": 727,
+        "transactions_sharing_ip": 783,
+        "related_fraud_transactions": 1295
+      }
+    },
+    {
+      "tx_id": "tx_372",
+      "fraud_type": "STEALTH_RING",
+      "is_fraud": true,
+      "risk_score": 20,
+      "fraud_probability": 0.197,
+      "decision": "ALLOW",
+      "customer_id": "cust_7546",
+      "device_id": "dev_994",
+      "ip_id": "ip_991",
+      "payment_method_id": "pm_6832",
+      "features": {
+        "amount": 41.0,
+        "account_age_minutes": 18255,
+        "failed_attempts_recent": 0
+      },
+      "relationships": {
+        "customers_sharing_device": 694,
+        "customers_sharing_ip": 734,
+        "transactions_sharing_device": 719,
+        "transactions_sharing_ip": 760,
+        "related_fraud_transactions": 1267
+      }
+    }
+  ]
+}

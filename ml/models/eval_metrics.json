@@ -1,0 +1,82 @@
+{
+  "accuracy": 0.9907,
+  "precision": 0.9276,
+  "recall": 1.0,
+  "f1_score": 0.9624,
+  "roc_auc": 0.9996,
+  "confusion_matrix": [
+    [
+      13080,
+      139
+    ],
+    [
+      0,
+      1781
+    ]
+  ],
+  "train_samples": 70000,
+  "test_samples": 15000,
+  "shap_ranking": [
+    {
+      "feature": "account_age_minutes",
+      "importance": 2.1002
+    },
+    {
+      "feature": "amount",
+      "importance": 1.4555
+    },
+    {
+      "feature": "device_account_count",
+      "importance": 1.4067
+    },
+    {
+      "feature": "time_since_previous_transaction",
+      "importance": 0.8538
+    },
+    {
+      "feature": "ip_account_count",
+      "importance": 0.7918
+    },
+    {
+      "feature": "country_change",
+      "importance": 0.5103
+    },
+    {
+      "feature": "amount_deviation_from_customer_history",
+      "importance": 0.4375
+    },
+    {
+      "feature": "failed_attempts_recent",
+      "importance": 0.354
+    },
+    {
+      "feature": "average_customer_amount",
+      "importance": 0.3396
+    },
+    {
+      "feature": "coupon_usage_count",
+      "importance": 0.2138
+    },
+    {
+      "feature": "transactions_last_10m",
+      "importance": 0.0005
+    },
+    {
+      "feature": "transactions_last_5m",
+      "importance": 0.0001
+    },
+    {
+      "feature": "transactions_last_1m",
+      "importance": 0.0001
+    },
+    {
+      "feature": "payment_method_age",
+      "importance": 0.0
+    },
+    {
+      "feature": "refund_count",
+      "importance": 0.0
+    }
+  ],
+  "trained_at": "2026-09-02T11:42:24Z"
+}

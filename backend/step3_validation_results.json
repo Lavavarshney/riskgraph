@@ -1,0 +1,891 @@
+{
+  "db_dialect": "postgresql",
+  "part1": {
+    "total_transactions": 100000,
+    "legitimate_transactions": 88038,
+    "fraudulent_transactions": 11962,
+    "fraud_percentage": 11.96,
+    "fraud_type_breakdown": {
+      "NORMAL": 88038,
+      "FRAUD_RING": 1967,
+      "ACCOUNT_TAKEOVER": 1672,
+      "STEALTH_RING": 3042,
+      "COUPON_ABUSE": 1490,
+      "CARD_TESTING": 2006,
+      "ACCOUNT_FARM": 1785
+    }
+  },
+  "part2_features": [
+    "amount",
+    "account_age_minutes",
+    "failed_attempts_recent",
+    "transactions_last_1m",
+    "transactions_last_5m",
+    "transactions_last_10m",
+    "time_since_previous_transaction",
+    "device_account_count",
+    "ip_account_count",
+    "payment_method_age",
+    "country_change",
+    "average_customer_amount",
+    "amount_deviation_from_customer_history",
+    "refund_count",
+    "coupon_usage_count"
+  ],
+  "part3": {
+    "fraud_type_test_pass": true,
+    "is_fraud_test_pass": true
+  },
+  "part4": {
+    "id_leakage_pass": true,
+    "columns": [
+      "amount",
+      "account_age_minutes",
+      "failed_attempts_recent",
+      "transactions_last_1m",
+      "transactions_last_5m",
+      "transactions_last_10m",
+      "time_since_previous_transaction",
+      "device_account_count",
+      "ip_account_count",
+      "payment_method_age",
+      "country_change",
+      "average_customer_amount",
+      "amount_deviation_from_customer_history",
+      "refund_count",
+      "coupon_usage_count"
+    ]
+  },
+  "part6": {
+    "train": {
+      "count": 70000,
+      "min_time": "2026-08-19 11:39:59.763235",
+      "max_time": "2026-08-29 06:51:47.763235",
+      "fraud": 8384
+    },
+    "val": {
+      "count": 15000,
+      "min_time": "2026-08-29 06:51:59.763235",
+      "max_time": "2026-08-31 09:15:47.763235",
+      "fraud": 1797
+    },
+    "test": {
+      "count": 15000,
+      "min_time": "2026-08-31 09:15:59.763235",
+      "max_time": "2026-09-02 11:39:47.763235",
+      "fraud": 1781
+    }
+  },
+  "part8": {
+    "train_samples": 70000,
+    "val_samples": 15000,
+    "test_samples": 15000,
+    "legit_test": 13219,
+    "fraud_test": 1781,
+    "tp": 1781,
+    "tn": 13080,
+    "fp": 139,
+    "fn": 0,
+    "precision": 0.9276,
+    "recall": 1.0,
+    "f1_score": 0.9624,
+    "roc_auc": 0.9996,
+    "fpr": 0.0105,
+    "fnr": 0.0,
+    "confusion_matrix": [
+      [
+        13080,
+        139
+      ],
+      [
+        0,
+        1781
+      ]
+    ]
+  },
+  "part9": {
+    "feature_correlations_with_is_fraud": {
+      "amount": 0.0669,
+      "account_age_minutes": -0.3488,
+      "failed_attempts_recent": 0.449,
+      "transactions_last_1m": 0.0046,
+      "transactions_last_5m": 0.002,
+      "transactions_last_10m": 0.0049,
+      "time_since_previous_transaction": -0.0616,
+      "device_account_count": 0.4779,
+      "ip_account_count": 0.4871,
+      "payment_method_age": NaN,
+      "country_change": 0.3538,
+      "average_customer_amount": 0.1431,
+      "amount_deviation_from_customer_history": 0.0109,
+      "refund_count": NaN,
+      "coupon_usage_count": 0.1698
+    },
+    "feature_means_by_fraud_type": {
+      "amount": {
+        "ACCOUNT_FARM": 23.587781512605044,
+        "ACCOUNT_TAKEOVER": 590.9703528708134,
+        "CARD_TESTING": 2.0047208374875374,
+        "COUPON_ABUSE": 11.425879194630873,
+        "FRAUD_RING": 1494.2887646161666,
+        "NORMAL": 282.95423078670575,
+        "STEALTH_RING": 108.34898750821827
+      },
+      "account_age_minutes": {
+        "ACCOUNT_FARM": 7.477310924369748,
+        "ACCOUNT_TAKEOVER": 50809.49820574163,
+        "CARD_TESTING": 61.69292123629113,
+        "COUPON_ABUSE": 16.324161073825504,
+        "FRAUD_RING": 2653.260803253686,
+        "NORMAL": 50666.63672505054,
+        "STEALTH_RING": 42706.323142669295
+      },
+      "failed_attempts_recent": {
+        "ACCOUNT_FARM": 0.0,
+        "ACCOUNT_TAKEOVER": 3.459928229665072,
+        "CARD_TESTING": 5.939680957128614,
+        "COUPON_ABUSE": 0.0,
+        "FRAUD_RING": 0.9816980172852059,
+        "NORMAL": 0.1037733705899725,
+        "STEALTH_RING": 0.0
+      },
+      "transactions_last_1m": {
+        "ACCOUNT_FARM": 0.0,
+        "ACCOUNT_TAKEOVER": 0.0005980861244019139,
+        "CARD_TESTING": 0.0004985044865403788,
+        "COUPON_ABUSE": 0.0,
+        "FRAUD_RING": 0.0005083884087442806,
+        "NORMAL": 0.00020445716622367614,
+        "STEALTH_RING": 0.0006574621959237344
+      },
+      "transactions_last_5m": {
+        "ACCOUNT_FARM": 0.0011204481792717086,
+        "ACCOUNT_TAKEOVER": 0.0005980861244019139,
+        "CARD_TESTING": 0.0019940179461615153,
+        "COUPON_ABUSE": 0.0,
+        "FRAUD_RING": 0.003050330452465684,
+        "NORMAL": 0.0012835366546264113,
+        "STEALTH_RING": 0.001643655489809336
+      },
+      "transactions_last_10m": {
+        "ACCOUNT_FARM": 0.0028011204481792717,
+        "ACCOUNT_TAKEOVER": 0.0023923444976076554,
+        "CARD_TESTING": 0.003988035892323031,
+        "COUPON_ABUSE": 0.0006711409395973154,
+        "FRAUD_RING": 0.0066090493136756485,
+        "NORMAL": 0.0024875621890547263,
+        "STEALTH_RING": 0.0026298487836949377
+      },
+      "time_since_previous_transaction": {
+        "ACCOUNT_FARM": 155836.86946778712,
+        "ACCOUNT_TAKEOVER": 169835.49880382774,
+        "CARD_TESTING": 95146.55284147557,
+        "COUPON_ABUSE": 163782.43422818792,
+        "FRAUD_RING": 65080.75902389426,
+        "NORMAL": 166308.02738590154,
+        "STEALTH_RING": 165199.38001314923
+      },
+      "device_account_count": {
+        "ACCOUNT_FARM": 110.91484593837535,
+        "ACCOUNT_TAKEOVER": 9.278708133971293,
+        "CARD_TESTING": 57.42323030907278,
+        "COUPON_ABUSE": 43.04161073825503,
+        "FRAUD_RING": 27.413828164717845,
+        "NORMAL": 15.119187169176946,
+        "STEALTH_RING": 383.4500328731098
+      },
+      "ip_account_count": {
+        "ACCOUNT_FARM": 95.01848739495799,
+        "ACCOUNT_TAKEOVER": 11.380382775119617,
+        "CARD_TESTING": 57.890827517447654,
+        "COUPON_ABUSE": 48.63489932885906,
+        "FRAUD_RING": 83.90493136756481,
+        "NORMAL": 20.15481950975715,
+        "STEALTH_RING": 383.8333333333333
+      },
+      "payment_method_age": {
+        "ACCOUNT_FARM": 45.0,
+        "ACCOUNT_TAKEOVER": 45.0,
+        "CARD_TESTING": 45.0,
+        "COUPON_ABUSE": 45.0,
+        "FRAUD_RING": 45.0,
+        "NORMAL": 45.0,
+        "STEALTH_RING": 45.0
+      },
+      "country_change": {
+        "ACCOUNT_FARM": 0.0,
+        "ACCOUNT_TAKEOVER": 1.0,
+        "CARD_TESTING": 0.0,
+        "COUPON_ABUSE": 0.0,
+        "FRAUD_RING": 0.0,
+        "NORMAL": 0.0,
+        "STEALTH_RING": 0.0
+      },
+      "average_customer_amount": {
+        "ACCOUNT_FARM": 193.000421867908,
+        "ACCOUNT_TAKEOVER": 350.19040171597413,
+        "CARD_TESTING": 484.41533311432806,
+        "COUPON_ABUSE": 208.91337806602422,
+        "FRAUD_RING": 1026.9115665730556,
+        "NORMAL": 280.7958466703705,
+        "STEALTH_RING": 239.36211843071462
+      },
+      "amount_deviation_from_customer_history": {
+        "ACCOUNT_FARM": 0.6678735930635854,
+        "ACCOUNT_TAKEOVER": 2.0312344055467535,
+        "CARD_TESTING": 0.8309444431852431,
+        "COUPON_ABUSE": 0.7261434535357509,
+        "FRAUD_RING": 6.511871312407775,
+        "NORMAL": 1.2630357599219562,
+        "STEALTH_RING": 0.5279019598407596
+      },
+      "refund_count": {
+        "ACCOUNT_FARM": 0.0,
+        "ACCOUNT_TAKEOVER": 0.0,
+        "CARD_TESTING": 0.0,
+        "COUPON_ABUSE": 0.0,
+        "FRAUD_RING": 0.0,
+        "NORMAL": 0.0,
+        "STEALTH_RING": 0.0
+      },
+      "coupon_usage_count": {
+        "ACCOUNT_FARM": 1.0,
+        "ACCOUNT_TAKEOVER": 0.0,
+        "CARD_TESTING": 0.0,
+        "COUPON_ABUSE": 1.0,
+        "FRAUD_RING": 0.0,
+        "NORMAL": 0.10212635452872623,
+        "STEALTH_RING": 0.0
+      }
+    }
+  },
+  "part10_shap": {
+    "legitimate": {
+      "tx_id": "tx_2",
+      "fraud_type": "NORMAL",
+      "is_fraud": false,
+      "prob": 0.00013468379620462656,
+      "risk_score": 0,
+      "top_positive_shap": [
+        {
+          "feature": "amount_deviation_from_customer_history",
+          "value": 0.0,
+          "shap": 0.2717
+        },
+        {
+          "feature": "time_since_previous_transaction",
+          "value": 86400.0,
+          "shap": 0.1274
+        },
+        {
+          "feature": "coupon_usage_count",
+          "value": 0.0,
+          "shap": 0.0383
+        }
+      ],
+      "top_negative_shap": [
+        {
+          "feature": "amount",
+          "value": 316.16,
+          "shap": -1.8576
+        },
+        {
+          "feature": "ip_account_count",
+          "value": 1.0,
+          "shap": -1.2926
+        },
+        {
+          "feature": "account_age_minutes",
+          "value": 13931.0,
+          "shap": -1.1979
+        },
+        {
+          "feature": "device_account_count",
+          "value": 1.0,
+          "shap": -1.074
+        },
+        {
+          "feature": "average_customer_amount",
+          "value": 316.16,
+          "shap": -0.8082
+        }
+      ]
+    },
+    "medium_risk": {
+      "tx_id": "tx_120",
+      "fraud_type": "FRAUD_RING",
+      "is_fraud": true,
+      "prob": 0.6480885744094849,
+      "risk_score": 65,
+      "top_positive_shap": [
+        {
+          "feature": "amount",
+          "value": 1816.17,
+          "shap": 3.1619
+        },
+        {
+          "feature": "account_age_minutes",
+          "value": 4278.0,
+          "shap": 1.9319
+        },
+        {
+          "feature": "average_customer_amount",
+          "value": 1816.17,
+          "shap": 0.2984
+        },
+        {
+          "feature": "amount_deviation_from_customer_history",
+          "value": 0.0,
+          "shap": 0.1325
+        },
+        {
+          "feature": "coupon_usage_count",
+          "value": 0.0,
+          "shap": 0.0462
+        }
+      ],
+      "top_negative_shap": [
+        {
+          "feature": "ip_account_count",
+          "value": 1.0,
+          "shap": -1.5357
+        },
+        {
+          "feature": "failed_attempts_recent",
+          "value": 0.0,
+          "shap": -0.5142
+        },
+        {
+          "feature": "device_account_count",
+          "value": 1.0,
+          "shap": -0.3436
+        },
+        {
+          "feature": "country_change",
+          "value": 0.0,
+          "shap": -0.3185
+        },
+        {
+          "feature": "time_since_previous_transaction",
+          "value": 86400.0,
+          "shap": -0.0273
+        }
+      ]
+    },
+    "high_risk": {
+      "tx_id": "tx_1",
+      "fraud_type": "CARD_TESTING",
+      "is_fraud": true,
+      "prob": 0.9993725419044495,
+      "risk_score": 100,
+      "top_positive_shap": [
+        {
+          "feature": "account_age_minutes",
+          "value": 62.0,
+          "shap": 9.5215
+        },
+        {
+          "feature": "failed_attempts_recent",
+          "value": 6.0,
+          "shap": 1.2983
+        },
+        {
+          "feature": "average_customer_amount",
+          "value": 2.0,
+          "shap": 0.7432
+        },
+        {
+          "feature": "amount_deviation_from_customer_history",
+          "value": 0.0,
+          "shap": 0.1674
+        },
+        {
+          "feature": "time_since_previous_transaction",
+          "value": 86400.0,
+          "shap": 0.093
+        }
+      ],
+      "top_negative_shap": [
+        {
+          "feature": "ip_account_count",
+          "value": 1.0,
+          "shap": -0.9448
+        },
+        {
+          "feature": "device_account_count",
+          "value": 1.0,
+          "shap": -0.454
+        },
+        {
+          "feature": "amount",
+          "value": 2.0,
+          "shap": -0.4527
+        },
+        {
+          "feature": "country_change",
+          "value": 0.0,
+          "shap": -0.3351
+        },
+        {
+          "feature": "coupon_usage_count",
+          "value": 0.0,
+          "shap": -0.0428
+        }
+      ]
+    }
+  },
+  "part11_20_low_risk_frauds": [
+    {
+      "transaction_id": "tx_110",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_15136",
+      "device_id": "dev_993",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_14377",
+      "device_account_count": 1.0,
+      "ip_account_count": 1.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_220",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_6160",
+      "device_id": "dev_993",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_8400",
+      "device_account_count": 1.0,
+      "ip_account_count": 2.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_303",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_15584",
+      "device_id": "dev_993",
+      "ip_id": "ip_992",
+      "payment_method_id": "pm_8814",
+      "device_account_count": 2.0,
+      "ip_account_count": 2.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 742,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_312",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_12589",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_3469",
+      "device_account_count": 3.0,
+      "ip_account_count": 1.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_565",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_16313",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_3614",
+      "device_account_count": 4.0,
+      "ip_account_count": 2.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_615",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 2,
+      "customer_id": "cust_15253",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_8185",
+      "device_account_count": 5.0,
+      "ip_account_count": 3.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_636",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_13155",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_9979",
+      "device_account_count": 6.0,
+      "ip_account_count": 4.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_692",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_12710",
+      "device_id": "dev_993",
+      "ip_id": "ip_992",
+      "payment_method_id": "pm_6512",
+      "device_account_count": 7.0,
+      "ip_account_count": 4.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 742,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_734",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_14732",
+      "device_id": "dev_993",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_2227",
+      "device_account_count": 8.0,
+      "ip_account_count": 6.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_996",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_9535",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_2016",
+      "device_account_count": 9.0,
+      "ip_account_count": 6.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_1100",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 5,
+      "customer_id": "cust_8621",
+      "device_id": "dev_993",
+      "ip_id": "ip_991",
+      "payment_method_id": "pm_14027",
+      "device_account_count": 10.0,
+      "ip_account_count": 7.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 813,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_1140",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 8,
+      "customer_id": "cust_14897",
+      "device_id": "dev_993",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_9017",
+      "device_account_count": 11.0,
+      "ip_account_count": 10.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_1251",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 14,
+      "customer_id": "cust_15057",
+      "device_id": "dev_993",
+      "ip_id": "ip_992",
+      "payment_method_id": "pm_706",
+      "device_account_count": 13.0,
+      "ip_account_count": 10.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 742,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_1321",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 12,
+      "customer_id": "cust_14260",
+      "device_id": "dev_993",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_12002",
+      "device_account_count": 14.0,
+      "ip_account_count": 14.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_1690",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 26,
+      "customer_id": "cust_6238",
+      "device_id": "dev_993",
+      "ip_id": "ip_991",
+      "payment_method_id": "pm_4012",
+      "device_account_count": 17.0,
+      "ip_account_count": 10.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 813,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_226",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_16756",
+      "device_id": "dev_992",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_7845",
+      "device_account_count": 1.0,
+      "ip_account_count": 3.0,
+      "total_shared_device_customers": 780,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 801,
+      "total_related_fraud_transactions": 780
+    },
+    {
+      "transaction_id": "tx_322",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 2,
+      "customer_id": "cust_12513",
+      "device_id": "dev_992",
+      "ip_id": "ip_992",
+      "payment_method_id": "pm_1828",
+      "device_account_count": 1.0,
+      "ip_account_count": 3.0,
+      "total_shared_device_customers": 780,
+      "total_shared_ip_customers": 742,
+      "total_related_transactions": 801,
+      "total_related_fraud_transactions": 780
+    },
+    {
+      "transaction_id": "tx_348",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 2,
+      "customer_id": "cust_13495",
+      "device_id": "dev_992",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_4206",
+      "device_account_count": 2.0,
+      "ip_account_count": 5.0,
+      "total_shared_device_customers": 780,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 801,
+      "total_related_fraud_transactions": 780
+    },
+    {
+      "transaction_id": "tx_405",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_14351",
+      "device_id": "dev_992",
+      "ip_id": "ip_991",
+      "payment_method_id": "pm_1509",
+      "device_account_count": 3.0,
+      "ip_account_count": 3.0,
+      "total_shared_device_customers": 780,
+      "total_shared_ip_customers": 813,
+      "total_related_transactions": 801,
+      "total_related_fraud_transactions": 780
+    },
+    {
+      "transaction_id": "tx_510",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_8919",
+      "device_id": "dev_992",
+      "ip_id": "ip_991",
+      "payment_method_id": "pm_12532",
+      "device_account_count": 4.0,
+      "ip_account_count": 4.0,
+      "total_shared_device_customers": 780,
+      "total_shared_ip_customers": 813,
+      "total_related_transactions": 801,
+      "total_related_fraud_transactions": 780
+    }
+  ],
+  "part12_top10_critical_examples": [
+    {
+      "transaction_id": "tx_110",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_15136",
+      "device_id": "dev_993",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_14377",
+      "device_account_count": 1.0,
+      "ip_account_count": 1.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_220",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_6160",
+      "device_id": "dev_993",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_8400",
+      "device_account_count": 1.0,
+      "ip_account_count": 2.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_303",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_15584",
+      "device_id": "dev_993",
+      "ip_id": "ip_992",
+      "payment_method_id": "pm_8814",
+      "device_account_count": 2.0,
+      "ip_account_count": 2.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 742,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_312",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 1,
+      "customer_id": "cust_12589",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_3469",
+      "device_account_count": 3.0,
+      "ip_account_count": 1.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_565",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_16313",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_3614",
+      "device_account_count": 4.0,
+      "ip_account_count": 2.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_615",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 2,
+      "customer_id": "cust_15253",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_8185",
+      "device_account_count": 5.0,
+      "ip_account_count": 3.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_636",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_13155",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_9979",
+      "device_account_count": 6.0,
+      "ip_account_count": 4.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_692",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_12710",
+      "device_id": "dev_993",
+      "ip_id": "ip_992",
+      "payment_method_id": "pm_6512",
+      "device_account_count": 7.0,
+      "ip_account_count": 4.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 742,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_734",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_14732",
+      "device_id": "dev_993",
+      "ip_id": "ip_994",
+      "payment_method_id": "pm_2227",
+      "device_account_count": 8.0,
+      "ip_account_count": 6.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 726,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    },
+    {
+      "transaction_id": "tx_996",
+      "fraud_type": "STEALTH_RING",
+      "risk_score": 3,
+      "customer_id": "cust_9535",
+      "device_id": "dev_993",
+      "ip_id": "ip_993",
+      "payment_method_id": "pm_2016",
+      "device_account_count": 9.0,
+      "ip_account_count": 6.0,
+      "total_shared_device_customers": 782,
+      "total_shared_ip_customers": 754,
+      "total_related_transactions": 800,
+      "total_related_fraud_transactions": 781
+    }
+  ]
+}
