@@ -12,8 +12,8 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="light">
-      <body className="bg-app text-slate-100 flex min-h-screen">
+    <html lang="en" data-theme="dark" className="bg-app">
+      <body className="bg-app text-primary flex min-h-screen">
         <ThemeProvider>
           <WebSocketProvider>
             <Sidebar />
