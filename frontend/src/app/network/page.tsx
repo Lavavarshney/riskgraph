@@ -63,9 +63,9 @@ export default function NetworkPage() {
   };
 
   return (
-    <div className="space-y-6 font-sans">
+    <main className="space-y-4 font-sans min-w-0">
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-subtle pb-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-subtle pb-3">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold font-sans text-primary tracking-tight">FRAUD RELATIONSHIP GRAPH ENGINE</h2>
@@ -128,6 +128,6 @@ export default function NetworkPage() {
           height="620px"
         />
       )}
-    </div>
+    </main>
   );
 }

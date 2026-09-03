@@ -218,7 +218,7 @@ export function ReactFlowGraphCanvas({
   }, [nodesState, edgesState]);
 
   return (
-    <div className="bg-card border border-subtle rounded-xl flex flex-col overflow-hidden relative shadow-sm" style={{ height }}>
+    <div className="graph-shell bg-card border border-subtle rounded-xl flex min-h-0 flex-col overflow-hidden relative shadow-sm" style={{ height }}>
       {/* Top Bar Header */}
       <div className="p-3 border-b border-subtle bg-surface-secondary flex flex-wrap items-center justify-between gap-2 z-10 font-mono">
         <div className="flex items-center gap-2">
