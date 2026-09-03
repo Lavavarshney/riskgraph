@@ -53,6 +53,11 @@
 .animate-draw-in { animation: draw-in .7s ease both; }
 @media (max-width: 768px) { .console-sidebar { display:none; } }
 .bg-app { background-color: var(--bg-app); }
+.border-strong { border-color: var(--border-strong); }
+.graph-shell { min-height: 420px; }
+.graph-shell .react-flow { min-height: 0; }
+.graph-shell .react-flow__panel { margin: 10px; }
+@media (max-width: 768px) { .graph-shell { min-height: 520px; } }
 .bg-surface { background-color: var(--surface-primary); }
 .bg-card { background-color: var(--surface-primary); }
 .bg-surface-secondary { background-color: var(--surface-secondary); }
