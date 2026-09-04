@@ -63,7 +63,13 @@ export default function NetworkPage() {
   };
 
   return (
-    <main className="space-y-4 font-sans min-w-0">
+    <main className="space-y-3 font-sans min-w-0">
+      <div className="flex items-center justify-between border-b border-subtle pb-2">
+        <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.16em] text-muted">
+          <span className="text-primary">Case workspace</span><span>/</span><span>Network intelligence</span><span>/</span><span className="text-blue-500">{activeEntity}</span>
+        </div>
+        <span className="hidden sm:inline text-[10px] font-mono text-muted">GRAPH ENGINE / ONLINE</span>
+      </div>
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-subtle pb-3">
         <div>
@@ -82,7 +88,7 @@ export default function NetworkPage() {
       </div>
 
       {/* Entity Search Bar */}
-      <div className="bg-card border border-subtle p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm font-mono">
+      <div className="bg-card border border-subtle p-3 rounded-sm flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm font-mono">
         <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-auto flex-1">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-muted absolute left-3 top-2.5" />

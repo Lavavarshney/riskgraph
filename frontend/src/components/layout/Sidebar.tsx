@@ -15,7 +15,7 @@ const navSections = [
 export const Sidebar = () => {
   const pathname = usePathname();
   return (
-    <aside className="console-sidebar w-60 bg-surface border-r border-subtle flex flex-col justify-between min-h-screen font-sans transition-colors">
+    <aside className="console-sidebar w-52 bg-surface border-r border-subtle flex flex-col justify-between min-h-screen font-sans transition-colors">
       <div>
         <div className="px-6 py-6 border-b border-subtle">
           <div className="flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-blue-500" /><span className="font-bold tracking-[0.18em] text-sm text-primary">RISKGRAPH</span></div>

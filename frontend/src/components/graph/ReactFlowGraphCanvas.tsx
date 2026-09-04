@@ -73,7 +73,7 @@ const CustomNode = ({ data }: { data: any }) => {
   const IconComponent = style.icon;
 
   return (
-    <div className={`px-3 py-2 rounded-lg border-2 shadow-sm flex items-center gap-2 max-w-[190px] cursor-pointer transition-all hover:scale-105 bg-card ${style.border}`}>
+    <div className={`px-3 py-2 rounded-sm border shadow-sm flex items-center gap-2 max-w-[190px] cursor-pointer transition-all hover:scale-105 bg-card ${style.border}`}>
       <Handle type="target" position={Position.Top} className="!bg-slate-400 !w-2 !h-2" />
       <div className={`p-1.2 rounded ${style.bg} ${style.text}`}>
         <IconComponent className="w-3.5 h-3.5" />
@@ -218,7 +218,7 @@ export function ReactFlowGraphCanvas({
   }, [nodesState, edgesState]);
 
   return (
-    <div className="graph-shell bg-card border border-subtle rounded-xl flex min-h-0 flex-col overflow-hidden relative shadow-sm" style={{ height }}>
+    <div className="graph-shell bg-card border border-subtle rounded-sm flex min-h-0 flex-col overflow-hidden relative shadow-sm" style={{ height }}>
       {/* Top Bar Header */}
       <div className="p-3 border-b border-subtle bg-surface-secondary flex flex-wrap items-center justify-between gap-2 z-10 font-mono">
         <div className="flex items-center gap-2">
