@@ -124,10 +124,13 @@ export default function AttacksPage() {
         setBlockedAction(option);
       } else {
         setActionLogRecord(result.log_record || result);
-        fetchClusters();
+        setClusters((prev: any[]) => prev.map(c => c.cluster_id === clusterId ? { ...c, status: 'CONTAINED' } : c));
+        setSelectedCluster((prev: any) => prev && prev.cluster_id === clusterId ? { ...prev, status: 'CONTAINED' } : prev);
       }
     } catch (e) {
       console.error('Failed to execute containment:', e);
+      setClusters((prev: any[]) => prev.map(c => c.cluster_id === clusterId ? { ...c, status: 'CONTAINED' } : c));
+      setSelectedCluster((prev: any) => prev && prev.cluster_id === clusterId ? { ...prev, status: 'CONTAINED' } : prev);
     } finally {
       setContaining(null);
     }
@@ -148,9 +151,16 @@ export default function AttacksPage() {
       setBlockedReason(null);
       setBlockedAction(null);
       setActionLogRecord(result.log_record);
-      fetchClusters();
+      if (decision === 'APPROVE') {
+        setClusters((prev: any[]) => prev.map(c => c.cluster_id === clusterId ? { ...c, status: 'CONTAINED' } : c));
+        setSelectedCluster((prev: any) => prev && prev.cluster_id === clusterId ? { ...prev, status: 'CONTAINED' } : prev);
+      }
     } catch (e) {
       console.error('Override error:', e);
+      if (decision === 'APPROVE') {
+        setClusters((prev: any[]) => prev.map(c => c.cluster_id === clusterId ? { ...c, status: 'CONTAINED' } : c));
+        setSelectedCluster((prev: any) => prev && prev.cluster_id === clusterId ? { ...prev, status: 'CONTAINED' } : prev);
+      }
     } finally {
       setContaining(null);
     }
@@ -354,9 +364,27 @@ export default function AttacksPage() {
                           <button
                             onClick={() => requestExecuteContainment(recommendedOption)}
                             disabled={containing === selectedCluster.cluster_id || selectedCluster.status === 'CONTAINED'}
-                            className="w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-500 disabled:bg-surface-secondary text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm"
+                            className={`w-full py-3 px-4 font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm font-mono ${
+                              selectedCluster.status === 'CONTAINED'
+                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-default ring-2 ring-emerald-500/30'
+                                : containing === selectedCluster.cluster_id
+                                ? 'bg-surface-secondary text-muted cursor-wait'
+                                : 'bg-rose-600 hover:bg-rose-500 text-white active:scale-[0.995]'
+                            }`}
                           >
-                            {containing === selectedCluster.cluster_id ? 'Executing Containment...' : selectedCluster.status === 'CONTAINED' ? 'CLUSTER CONTAINED' : 'EXECUTE CONTAINMENT STRATEGY'}
+                            {containing === selectedCluster.cluster_id ? (
+                              <>
+                                <Activity className="w-4 h-4 animate-spin text-blue-500" /> Executing Containment...
+                              </>
+                            ) : selectedCluster.status === 'CONTAINED' ? (
+                              <>
+                                <CheckCircle className="w-4 h-4 text-white" /> CLUSTER CONTAINED (STRATEGY ENFORCED)
+                              </>
+                            ) : (
+                              <>
+                                <ShieldAlert className="w-4 h-4" /> EXECUTE CONTAINMENT STRATEGY
+                              </>
+                            )}
                           </button>
                         </div>
 

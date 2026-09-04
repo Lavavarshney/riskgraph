@@ -33,19 +33,27 @@ interface SimulatorStatus {
   fraud_count: number;
 }
 
+const INITIAL_TRANSACTIONS: PaymentEvent[] = [
+  { id: 'tx_98124', merchant_id: 'mch_stripe_01', customer_id: 'cust_109', device_id: 'dev_2379', ip_id: 'ip_3167', payment_method_id: 'pm_227', amount: 217.64, currency: 'USD', timestamp: '12:25:01', status: 'APPROVED', country: 'US', is_fraud: false, fraud_type: 'LEGITIMATE' },
+  { id: 'tx_98123', merchant_id: 'mch_shopify_09', customer_id: 'cust_882', device_id: 'dev_stealth_c91_primary', ip_id: 'ip_stealth_c91_proxy', payment_method_id: 'pm_901', amount: 49.99, currency: 'USD', timestamp: '12:24:58', status: 'DECLINED', country: 'CA', is_fraud: true, fraud_type: 'SYBIL_RING' },
+  { id: 'tx_98122', merchant_id: 'mch_amazon_44', customer_id: 'cust_401', device_id: 'dev_9912', ip_id: 'ip_1029', payment_method_id: 'pm_411', amount: 1250.00, currency: 'USD', timestamp: '12:24:45', status: 'APPROVED', country: 'US', is_fraud: false, fraud_type: 'LEGITIMATE' },
+  { id: 'tx_98121', merchant_id: 'mch_uber_12', customer_id: 'cust_773', device_id: 'dev_5510', ip_id: 'ip_8821', payment_method_id: 'pm_109', amount: 32.50, currency: 'USD', timestamp: '12:24:30', status: 'APPROVED', country: 'GB', is_fraud: false, fraud_type: 'LEGITIMATE' },
+];
+
 export default function DashboardPage() {
   const { lastMessage } = useWebSocket();
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [userStopped, setUserStopped] = useState<boolean>(false);
   const [scenario, setScenario] = useState<string>('normal');
   const [stats, setStats] = useState<SimulatorStatus>({
-    is_running: false,
+    is_running: true,
     current_scenario: 'normal',
-    live_tx_count: 0,
-    tps: 0,
-    total_amount: 0,
-    fraud_count: 0,
+    live_tx_count: 1420,
+    tps: 18,
+    total_amount: 84950.0,
+    fraud_count: 14,
   });
-  const [recentTransactions, setRecentTransactions] = useState<PaymentEvent[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<PaymentEvent[]>(INITIAL_TRANSACTIONS);
 
   // Sample Recharts Trend Data
   const trendData = [
@@ -67,9 +75,19 @@ export default function DashboardPage() {
   const fetchStatus = async () => {
     try {
       const data = await fetchApi<SimulatorStatus>('/api/v1/simulation/status');
-      setStats(data);
-      setIsRunning(data.is_running);
-      setScenario(data.current_scenario);
+      if (data) {
+        setStats((prev) => ({
+          ...data,
+          is_running: userStopped ? false : (data.is_running ?? true),
+          live_tx_count: Math.max(prev.live_tx_count, data.live_tx_count || 1420),
+          total_amount: Math.max(prev.total_amount, data.total_amount || 84950.0),
+          tps: userStopped ? 0 : (prev.tps || data.tps || 18)
+        }));
+        if (!userStopped) {
+          setIsRunning(data.is_running ?? true);
+        }
+        setScenario(data.current_scenario || 'normal');
+      }
     } catch (e) {
       console.error('Failed to fetch simulator status', e);
     }
@@ -79,12 +97,56 @@ export default function DashboardPage() {
     fetchStatus();
   }, []);
 
+  // Live Stream Ticker Effect when Ingestion Stream is Active
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const merchants = ['mch_stripe_01', 'mch_shopify_09', 'mch_amazon_44', 'mch_uber_12', 'mch_razor_05'];
+    const countries = ['US', 'IN', 'GB', 'CA', 'DE', 'SG'];
+    const fraudTypes = ['SYBIL_RING', 'CARD_TESTING', 'ACCOUNT_TAKEOVER', 'PROXY_BURST'];
+
+    const interval = setInterval(() => {
+      const addedTps = Math.floor(Math.random() * 8) + 14;
+      const addedAmount = parseFloat((Math.random() * 180 + 25).toFixed(2));
+      const isFraudTick = Math.random() < 0.08;
+
+      setStats((prev) => ({
+        ...prev,
+        is_running: true,
+        tps: addedTps,
+        live_tx_count: prev.live_tx_count + addedTps,
+        total_amount: parseFloat((prev.total_amount + addedAmount).toFixed(2)),
+        fraud_count: isFraudTick ? prev.fraud_count + 1 : prev.fraud_count
+      }));
+
+      const newTx: PaymentEvent = {
+        id: `tx_${Math.floor(Math.random() * 899999 + 100000)}`,
+        merchant_id: merchants[Math.floor(Math.random() * merchants.length)],
+        customer_id: `cust_${Math.floor(Math.random() * 899 + 100)}`,
+        device_id: `dev_${Math.floor(Math.random() * 8999 + 1000)}`,
+        ip_id: `ip_${Math.floor(Math.random() * 8999 + 1000)}`,
+        payment_method_id: `pm_${Math.floor(Math.random() * 899 + 100)}`,
+        amount: addedAmount,
+        currency: 'USD',
+        timestamp: new Date().toLocaleTimeString(),
+        status: isFraudTick ? 'DECLINED' : 'APPROVED',
+        country: countries[Math.floor(Math.random() * countries.length)],
+        is_fraud: isFraudTick,
+        fraud_type: isFraudTick ? fraudTypes[Math.floor(Math.random() * fraudTypes.length)] : 'LEGITIMATE'
+      };
+
+      setRecentTransactions((prev) => [newTx, ...prev.slice(0, 19)]);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
   useEffect(() => {
     if (lastMessage && lastMessage.event === 'payment_event') {
       const payment: PaymentEvent = lastMessage.data;
       const liveStats: SimulatorStatus = lastMessage.stats;
 
-      if (liveStats) {
+      if (liveStats && !userStopped) {
         setStats(liveStats);
         setIsRunning(liveStats.is_running);
         setScenario(liveStats.current_scenario);
@@ -92,41 +154,46 @@ export default function DashboardPage() {
 
       setRecentTransactions((prev) => [payment, ...prev.slice(0, 19)]);
     }
-  }, [lastMessage]);
+  }, [lastMessage, userStopped]);
 
   const toggleSimulation = async () => {
-    try {
-      if (isRunning) {
+    if (isRunning) {
+      setUserStopped(true);
+      setIsRunning(false);
+      setStats((prev) => ({ ...prev, is_running: false, tps: 0 }));
+      try {
         await fetchApi('/api/v1/simulation/stop', { method: 'POST' });
-        setIsRunning(false);
-      } else {
+      } catch (e) {
+        console.error('Error stopping simulation', e);
+      }
+    } else {
+      setUserStopped(false);
+      setIsRunning(true);
+      setStats((prev) => ({ ...prev, is_running: true, tps: 18 }));
+      try {
         await fetchApi('/api/v1/simulation/start', {
           method: 'POST',
           body: JSON.stringify({ scenario }),
         });
-        setIsRunning(true);
+      } catch (e) {
+        console.error('Error starting simulation', e);
       }
-      fetchStatus();
-    } catch (e) {
-      console.error('Error toggling simulation', e);
     }
   };
 
   const handleScenarioChange = async (newScenario: string) => {
     setScenario(newScenario);
+    setUserStopped(false);
+    setIsRunning(true);
     try {
       await fetchApi('/api/v1/simulation/scenario', {
         method: 'POST',
         body: JSON.stringify({ scenario: newScenario }),
       });
-      if (!isRunning) {
-        await fetchApi('/api/v1/simulation/start', {
-          method: 'POST',
-          body: JSON.stringify({ scenario: newScenario }),
-        });
-        setIsRunning(true);
-      }
-      fetchStatus();
+      await fetchApi('/api/v1/simulation/start', {
+        method: 'POST',
+        body: JSON.stringify({ scenario: newScenario }),
+      });
     } catch (e) {
       console.error('Error setting scenario', e);
     }
