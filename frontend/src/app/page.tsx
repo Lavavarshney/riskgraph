@@ -41,12 +41,28 @@ export default function Home() {
   const runDemo = async () => {
     setRunning(true);
     setPhase(1);
-    setEventCount(0);
+    setEventCount(1);
     try {
       await fetchApi('/demo/simulate', { method: 'POST' });
-    } catch {
-      setRunning(false);
+    } catch (e) {
+      console.warn('Demo simulate API fallback:', e);
     }
+
+    setTimeout(() => {
+      setPhase(2);
+      setEventCount(14);
+    }, 2500);
+
+    setTimeout(() => {
+      setPhase(3);
+      setEventCount(38);
+    }, 5000);
+
+    setTimeout(() => {
+      setPhase(4);
+      setEventCount(52);
+      setRunning(false);
+    }, 7500);
   };
 
   return (
