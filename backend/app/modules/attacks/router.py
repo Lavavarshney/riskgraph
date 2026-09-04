@@ -32,12 +32,12 @@ def get_active_attacks(
             cluster_id="cls_c91_stealth_ring",
             cluster_name="ATTACK CLUSTER #C91 (Sybil Proxy Ring)",
             entity_type="device",
-            entity_id="dev_stealth_c91_primary"
+            entity_id="dev_991"
         )
         if stealth_cluster.cluster_id in CONTAINED_CLUSTERS:
             stealth_cluster.status = "CONTAINED"
             
-        if stealth_cluster.affected_accounts >= 3:
+        if stealth_cluster.affected_accounts >= 1:
             clusters.append(stealth_cluster)
     except Exception as e:
         print(f"[!] Stealth cluster query warning: {e}")
@@ -49,12 +49,12 @@ def get_active_attacks(
             cluster_id="cls_ip_botnet_alpha",
             cluster_name="Proxy IP Botnet Cluster Alpha",
             entity_type="ip",
-            entity_id="ip_stealth_c91_proxy"
+            entity_id="ip_991"
         )
         if ip_cluster.cluster_id in CONTAINED_CLUSTERS:
             ip_cluster.status = "CONTAINED"
 
-        if ip_cluster.affected_accounts >= 3 and not any(c.cluster_id == ip_cluster.cluster_id for c in clusters):
+        if ip_cluster.affected_accounts >= 1 and not any(c.cluster_id == ip_cluster.cluster_id for c in clusters):
             clusters.append(ip_cluster)
     except Exception as e:
         print(f"[!] IP cluster query warning: {e}")
@@ -66,7 +66,7 @@ def get_active_attacks(
             cluster_id="cls_dev_shared_ring",
             cluster_name="Multi-Account Device Sharing Ring",
             entity_type="device",
-            entity_id="dev_mac_bot"
+            entity_id="dev_1"
         )
         if dev_cluster.cluster_id in CONTAINED_CLUSTERS:
             dev_cluster.status = "CONTAINED"
@@ -104,6 +104,7 @@ def get_active_attacks(
             )
         )
 
+    clusters.sort(key=lambda c: c.final_combined_risk, reverse=True)
     return clusters[:limit]
 
 

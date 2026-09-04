@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Shield, ShieldAlert, CheckCircle, Save, Sliders, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { fetchApi } from '@/lib/api';
 
 interface MerchantPolicy {
   id: string;
@@ -29,12 +30,9 @@ export default function PoliciesPage() {
 
   const fetchPolicy = async () => {
     try {
-      const res = await fetch('http://localhost:8000/policies');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.length > 0) {
-          setPolicy(data[0]);
-        }
+      const data = await fetchApi<MerchantPolicy[]>('/policies');
+      if (data.length > 0) {
+        setPolicy(data[0]);
       }
     } catch (e) {
       console.error('Failed to fetch policy:', e);
@@ -47,15 +45,12 @@ export default function PoliciesPage() {
     if (!policy) return;
     setSaving(true);
     try {
-      const res = await fetch(`http://localhost:8000/policies/${policy.id}`, {
+      await fetchApi<MerchantPolicy>(`/policies/${policy.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(policy),
       });
-      if (res.ok) {
-        setSavedMessage('Policy successfully updated & enforced globally.');
-        setTimeout(() => setSavedMessage(''), 3000);
-      }
+      setSavedMessage('Policy successfully updated & enforced globally.');
+      setTimeout(() => setSavedMessage(''), 3000);
     } catch (e) {
       console.error('Failed to save policy:', e);
     } finally {

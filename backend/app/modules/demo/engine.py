@@ -41,14 +41,25 @@ class DemoOrchestrator:
         DEMO_STATE["phase_number"] = phase_num
 
         ws_payload = {
-            "event": "DEMO_EVENT",
-            "phase": phase,
+            "event": "demo_event",
+            "phase": phase_num,
             "phase_number": phase_num,
+            "phase_name": phase,
+            "message": message,
+            "timestamp": now_time,
             "log_entry": log_entry,
-            "data": payload or {}
+            "data": {
+                "phase": phase_num,
+                "message": message,
+                "timestamp": now_time,
+                **(payload or {})
+            }
         }
         try:
             await ws_manager.broadcast(ws_payload)
+            # Also send duplicate uppercase DEMO_EVENT for total backwards compatibility
+            ws_payload_upper = { **ws_payload, "event": "DEMO_EVENT" }
+            await ws_manager.broadcast(ws_payload_upper)
         except Exception:
             pass
 

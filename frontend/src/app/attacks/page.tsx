@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/Badge';
+import { fetchApi } from '@/lib/api';
 import { ShieldAlert, Target, Activity, CheckCircle, AlertTriangle, Layers, ArrowRight, ShieldCheck, CornerDownRight } from 'lucide-react';
 import { ReactFlowGraphCanvas } from '@/components/graph/ReactFlowGraphCanvas';
 
@@ -54,13 +55,10 @@ export default function AttacksPage() {
 
   const fetchClusters = async () => {
     try {
-      const res = await fetch('http://localhost:8000/attacks/active');
-      if (res.ok) {
-        const data = await res.json();
-        setClusters(data);
-        if (data.length > 0 && !selectedCluster) {
-          setSelectedCluster(data[0]);
-        }
+      const data = await fetchApi<any[]>('/attacks/active');
+      setClusters(data);
+      if (data.length > 0 && !selectedCluster) {
+        setSelectedCluster(data[0]);
       }
     } catch (e) {
       console.error('Failed to fetch attack clusters:', e);
@@ -79,11 +77,8 @@ export default function AttacksPage() {
     setBlockedReason(null);
     setBlockedAction(null);
     try {
-      const res = await fetch(`http://localhost:8000/attacks/${clusterId}/containment-options`);
-      if (res.ok) {
-        const data = await res.json();
-        setContainmentOptions(data);
-      }
+      const data = await fetchApi<ContainmentCandidate[]>(`/attacks/${clusterId}/containment-options`);
+      setContainmentOptions(data);
     } catch (e) {
       console.error('Failed to fetch containment choke points:', e);
     } finally {
@@ -94,11 +89,8 @@ export default function AttacksPage() {
   const fetchCounterfactual = async (clusterId: string) => {
     setLoadingCounterfactual(true);
     try {
-      const res = await fetch(`http://localhost:8000/attacks/${clusterId}/counterfactual`);
-      if (res.ok) {
-        const data = await res.json();
-        setCounterfactual(data);
-      }
+      const data = await fetchApi<any>(`/attacks/${clusterId}/counterfactual`);
+      setCounterfactual(data);
     } catch (e) {
       console.error('Failed to fetch counterfactual simulation:', e);
     } finally {
@@ -118,9 +110,8 @@ export default function AttacksPage() {
     setBlockedAction(null);
 
     try {
-      const res = await fetch(`http://localhost:8000/attacks/${clusterId}/contain`, {
+      const result = await fetchApi<any>(`/attacks/${clusterId}/contain`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: option.action,
           target_id: option.target_id,
@@ -128,15 +119,12 @@ export default function AttacksPage() {
         })
       });
 
-      if (res.ok) {
-        const result = await res.json();
-        if (result.status === 'REQUIRES_MANUAL_APPROVAL') {
-          setBlockedReason(result.reason);
-          setBlockedAction(option);
-        } else {
-          setActionLogRecord(result.log_record || result);
-          fetchClusters();
-        }
+      if (result.status === 'REQUIRES_MANUAL_APPROVAL') {
+        setBlockedReason(result.reason);
+        setBlockedAction(option);
+      } else {
+        setActionLogRecord(result.log_record || result);
+        fetchClusters();
       }
     } catch (e) {
       console.error('Failed to execute containment:', e);
@@ -149,22 +137,18 @@ export default function AttacksPage() {
     if (!blockedAction) return;
     setContaining(clusterId);
     try {
-      const res = await fetch(`http://localhost:8000/attacks/${clusterId}/contain/override`, {
+      const result = await fetchApi<any>(`/attacks/${clusterId}/contain/override`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: blockedAction.action,
           target_id: blockedAction.target_id,
           decision: decision
         })
       });
-      if (res.ok) {
-        const result = await res.json();
-        setBlockedReason(null);
-        setBlockedAction(null);
-        setActionLogRecord(result.log_record);
-        fetchClusters();
-      }
+      setBlockedReason(null);
+      setBlockedAction(null);
+      setActionLogRecord(result.log_record);
+      fetchClusters();
     } catch (e) {
       console.error('Override error:', e);
     } finally {

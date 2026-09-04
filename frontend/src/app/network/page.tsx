@@ -7,8 +7,8 @@ import { ReactFlowGraphCanvas, GraphNodeData, GraphEdgeData, NetworkSignalsData 
 import { Network, Search, Activity, RefreshCw } from 'lucide-react';
 
 export default function NetworkPage() {
-  const [searchEntity, setSearchEntity] = useState<string>('tx_stealth_01');
-  const [activeEntity, setActiveEntity] = useState<string>('tx_stealth_01');
+  const [searchEntity, setSearchEntity] = useState<string>('tx_1');
+  const [activeEntity, setActiveEntity] = useState<string>('tx_1');
   const [nodes, setNodes] = useState<GraphNodeData[]>([]);
   const [edges, setEdges] = useState<GraphEdgeData[]>([]);
   const [riskScore, setRiskScore] = useState<number>(0);
@@ -17,25 +17,18 @@ export default function NetworkPage() {
   const [loading, setLoading] = useState<boolean>(true);
 
   async function loadGraph(entityId: string) {
+    const cleanId = entityId.trim() || 'tx_1';
     setLoading(true);
-    setActiveEntity(entityId);
+    setActiveEntity(cleanId);
     try {
-      let endpoint = `/api/v1/graph/subgraph/${entityId}?depth=1`;
-      if (entityId.startsWith && entityId.startsWith('tx_')) {
-        endpoint = `/api/v1/graph/transaction/${entityId}`;
-      } else if (entityId.startsWith && entityId.startsWith('dev_')) {
-        endpoint = `/api/v1/graph/device/${entityId}?depth=1`;
-      } else if (entityId.startsWith && entityId.startsWith('cust_')) {
-        endpoint = `/api/v1/graph/customer/${entityId}?depth=1`;
-      }
-
+      const endpoint = `/api/v1/graph/subgraph/${cleanId}?depth=2`;
       const res = await fetchApi<any>(endpoint);
       
       let graphObj = res;
       if (res.graph_data) {
         graphObj = res.graph_data;
-        setRiskScore(res.network_risk_score || 0);
-        setReasons(res.network_reasons || []);
+        setRiskScore(res.network_risk_score || res.individual_risk_score || 0);
+        setReasons(res.network_reasons || res.individual_reasons || []);
       } else {
         setRiskScore(res.network_risk_score || 0);
         setReasons(res.reasons || []);
@@ -52,7 +45,7 @@ export default function NetworkPage() {
   }
 
   useEffect(() => {
-    loadGraph('tx_stealth_01');
+    loadGraph('tx_1');
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -96,7 +89,7 @@ export default function NetworkPage() {
               type="text"
               value={searchEntity}
               onChange={(e) => setSearchEntity(e.target.value)}
-              placeholder="Search by Transaction (tx_stealth_01), Device (dev_stealth_c91_primary)..."
+              placeholder="Search by Transaction (tx_1), Device (dev_1), IP (ip_1)..."
               className="w-full bg-surface-secondary border border-subtle text-xs rounded-lg pl-9 pr-3 py-2 text-primary placeholder:text-muted focus:outline-none focus:border-blue-500 font-mono"
             />
           </div>
@@ -111,9 +104,10 @@ export default function NetworkPage() {
         {/* Preset Quick Entity Buttons */}
         <div className="flex items-center gap-2 text-xs text-muted flex-wrap">
           <span className="text-[10px] text-muted uppercase font-bold">Quick Presets:</span>
-          <button onClick={() => { setSearchEntity('tx_stealth_01'); loadGraph('tx_stealth_01'); }} className="px-2.5 py-1 bg-surface-secondary border border-subtle hover:border-border-strong rounded text-blue-500 font-bold">tx_stealth_01</button>
-          <button onClick={() => { setSearchEntity('dev_stealth_c91_primary'); loadGraph('dev_stealth_c91_primary'); }} className="px-2.5 py-1 bg-surface-secondary border border-subtle hover:border-border-strong rounded text-amber-500 font-bold">dev_stealth_c91_primary</button>
-          <button onClick={() => { setSearchEntity('ip_stealth_c91_proxy'); loadGraph('ip_stealth_c91_proxy'); }} className="px-2.5 py-1 bg-surface-secondary border border-subtle hover:border-border-strong rounded text-emerald-500 font-bold">ip_stealth_c91_proxy</button>
+          <button onClick={() => { setSearchEntity('tx_1'); loadGraph('tx_1'); }} className="px-2.5 py-1 bg-surface-secondary border border-subtle hover:border-border-strong rounded text-blue-500 font-bold">tx_1</button>
+          <button onClick={() => { setSearchEntity('dev_1'); loadGraph('dev_1'); }} className="px-2.5 py-1 bg-surface-secondary border border-subtle hover:border-border-strong rounded text-amber-500 font-bold">dev_1</button>
+          <button onClick={() => { setSearchEntity('ip_1'); loadGraph('ip_1'); }} className="px-2.5 py-1 bg-surface-secondary border border-subtle hover:border-border-strong rounded text-emerald-500 font-bold">ip_1</button>
+          <button onClick={() => { setSearchEntity('cust_1'); loadGraph('cust_1'); }} className="px-2.5 py-1 bg-surface-secondary border border-subtle hover:border-border-strong rounded text-purple-500 font-bold">cust_1</button>
         </div>
       </div>
 

@@ -196,6 +196,8 @@ export function ReactFlowGraphCanvas({
         id: n.id,
         type: 'custom',
         position: { x, y },
+        width: 180,
+        height: 54,
         data: { ...n }
       };
     });
@@ -271,10 +273,25 @@ export function ReactFlowGraphCanvas({
           <Controls className="!bg-surface-secondary !border-subtle !text-primary" />
           <MiniMap
             nodeColor={(node) => {
-              const type = node.data?.type || 'transaction';
-              return NODE_COLOR_MAP[type as string]?.colorHex || '#3b82f6';
+              const type = (node.data as any)?.type || 'transaction';
+              const isFlagged = ((node.data as any)?.risk_score || 0) >= 70 || (node.data as any)?.details?.is_fraud;
+              const configKey = (type === 'transaction' && isFlagged) ? 'transaction_flagged' : type;
+              return NODE_COLOR_MAP[configKey as string]?.colorHex || '#3b82f6';
             }}
-            className="!bg-surface-secondary !border-subtle"
+            nodeStrokeColor={(node) => {
+              const type = (node.data as any)?.type || 'transaction';
+              const isFlagged = ((node.data as any)?.risk_score || 0) >= 70 || (node.data as any)?.details?.is_fraud;
+              const configKey = (type === 'transaction' && isFlagged) ? 'transaction_flagged' : type;
+              return NODE_COLOR_MAP[configKey as string]?.colorHex || '#3b82f6';
+            }}
+            nodeStrokeWidth={2}
+            nodeBorderRadius={4}
+            maskColor="rgba(13, 16, 18, 0.7)"
+            maskStrokeColor="var(--border-strong)"
+            maskStrokeWidth={1}
+            zoomable
+            pannable
+            className="!bg-surface-secondary !border-subtle !rounded-lg"
           />
         </ReactFlow>
 

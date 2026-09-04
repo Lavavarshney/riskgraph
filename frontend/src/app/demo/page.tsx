@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Play, Activity, ShieldAlert, Target, CheckCircle2, Clock, Zap, ArrowRight } from 'lucide-react';
 import { useWebSocket } from '@/lib/websocket';
+import { fetchApi } from '@/lib/api';
 
 interface DemoEvent {
   phase: number;
@@ -33,31 +34,36 @@ export default function DemoPage() {
     setSummaryData(null);
 
     try {
-      const res = await fetch('http://localhost:8000/demo/simulate', {
+      const data = await fetchApi<any>('/demo/simulate', {
         method: 'POST'
       });
-      if (res.ok) {
-        const data = await res.json();
-        setSummaryData(data);
-      }
+      setSummaryData(data);
     } catch (e) {
       console.error('Failed to trigger demo simulation:', e);
+      setIsRunning(false);
     }
   };
 
   useEffect(() => {
-    if (lastMessage && lastMessage.event === 'demo_event') {
-      const demoData = lastMessage.data;
-      if (demoData.phase) setCurrentPhase(demoData.phase);
-      setEvents(prev => [...prev, {
-        phase: demoData.phase || 1,
-        timestamp: demoData.timestamp || new Date().toLocaleTimeString(),
-        message: demoData.message || 'Event processed',
-        details: demoData.details
-      }]);
+    if (lastMessage) {
+      const evtName = String(lastMessage.event || '').toLowerCase();
+      if (evtName === 'demo_event') {
+        const demoData = lastMessage.data || {};
+        const phaseNum = Number(lastMessage.phase_number || lastMessage.phase || demoData.phase_number || demoData.phase || 1);
+        const msg = lastMessage.message || lastMessage.log_entry?.message || demoData.message || 'Event processed';
+        const ts = lastMessage.timestamp || lastMessage.log_entry?.timestamp || demoData.timestamp || new Date().toLocaleTimeString();
 
-      if (demoData.phase === 4) {
-        setIsRunning(false);
+        setCurrentPhase(phaseNum);
+        setEvents(prev => [...prev, {
+          phase: phaseNum,
+          timestamp: ts,
+          message: msg,
+          details: demoData
+        }]);
+
+        if (phaseNum >= 4) {
+          setIsRunning(false);
+        }
       }
     }
   }, [lastMessage]);

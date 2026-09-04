@@ -23,12 +23,18 @@ for origin in settings.BACKEND_CORS_ORIGINS:
     else:
         origins.update([o.strip() for o in origin_str.split(",") if o.strip()])
 
-origins.update(["http://localhost:3000", "http://127.0.0.1:3000"])
+origins.update([
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://riskgraph.vercel.app",
+    "http://riskgraph.vercel.app"
+])
 
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(origins),
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

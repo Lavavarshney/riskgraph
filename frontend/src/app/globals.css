@@ -59,6 +59,13 @@
 .graph-shell .react-flow__edge-text { letter-spacing: .02em; }
 .graph-shell .react-flow { min-height: 0; }
 .graph-shell .react-flow__panel { margin: 10px; }
+.graph-shell .react-flow__minimap { background-color: var(--surface-primary) !important; border: 1px solid var(--border-subtle) !important; border-radius: 8px !important; overflow: hidden !important; }
+.graph-shell .react-flow__minimap-mask { fill: var(--surface-secondary) !important; fill-opacity: 0.65 !important; stroke: var(--border-strong) !important; }
+.graph-shell .react-flow__minimap-node { fill-opacity: 0.9 !important; stroke-opacity: 1 !important; rx: 3px !important; ry: 3px !important; }
+.graph-shell .react-flow__controls { background-color: var(--surface-primary) !important; border: 1px solid var(--border-subtle) !important; border-radius: 8px !important; box-shadow: var(--shadow-card) !important; overflow: hidden !important; }
+.graph-shell .react-flow__controls-button { background-color: var(--surface-primary) !important; border-bottom: 1px solid var(--border-subtle) !important; fill: var(--text-primary) !important; color: var(--text-primary) !important; }
+.graph-shell .react-flow__controls-button:hover { background-color: var(--surface-secondary) !important; }
+.graph-shell .react-flow__controls-button svg { fill: currentColor !important; }
 @media (max-width: 768px) { .graph-shell { min-height: 520px; } }
 .bg-surface { background-color: var(--surface-primary); }
 .bg-card { background-color: var(--surface-primary); }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Check, CircleDot, Play, Square, Waypoints } from 'lucide-react';
 import { useWebSocket } from '@/lib/websocket';
+import { fetchApi } from '@/lib/api';
 import { NetworkScene } from '@/components/landing/NetworkScene';
 
 const entities = [
@@ -42,7 +43,7 @@ export default function Home() {
     setPhase(1);
     setEventCount(0);
     try {
-      await fetch('http://localhost:8000/demo/simulate', { method: 'POST' });
+      await fetchApi('/demo/simulate', { method: 'POST' });
     } catch {
       setRunning(false);
     }

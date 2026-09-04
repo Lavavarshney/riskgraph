@@ -11,8 +11,8 @@ async def trigger_live_demo(background_tasks: BackgroundTasks, db: Session = Dep
     Triggers the 4-phase live attack demo simulation.
     Runs asynchronously in the background and streams live events over WebSockets.
     """
-    if DEMO_STATE["is_running"]:
-        return {"status": "ALREADY_RUNNING", "message": "Demo simulation is currently active."}
+    # Always reset stuck state if re-triggered
+    DEMO_STATE["is_running"] = False
 
     background_tasks.add_task(DemoOrchestrator.run_live_demo, db)
     return {
@@ -20,6 +20,14 @@ async def trigger_live_demo(background_tasks: BackgroundTasks, db: Session = Dep
         "message": "Live attack demo simulation initiated across 4 backend phases.",
         "websocket_url": "ws://localhost:8000/ws/payments"
     }
+
+@router.post("/reset")
+def reset_demo_state():
+    DEMO_STATE["is_running"] = False
+    DEMO_STATE["current_phase"] = "IDLE"
+    DEMO_STATE["phase_number"] = 0
+    DEMO_STATE["logs"] = []
+    return {"status": "RESET"}
 
 @router.get("/status")
 def get_demo_status():

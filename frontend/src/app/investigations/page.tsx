@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Brain, ShieldAlert, Sparkles, Send, FileText, CheckCircle2, AlertTriangle, Layers, Target, ShieldCheck, ArrowRight, CornerDownRight, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { fetchApi } from '@/lib/api';
 
 interface InvestigationReport {
   transaction_id: string;
@@ -42,19 +43,16 @@ export default function InvestigationsPage() {
     setReport(null);
     setChatMessages([]);
     try {
-      const res = await fetch(`http://localhost:8000/investigations/${targetId}`, {
+      const data = await fetchApi<InvestigationReport>(`/investigations/${targetId}`, {
         method: 'POST'
       });
-      if (res.ok) {
-        const data = await res.json();
-        setReport(data);
-        setChatMessages([
-          {
-            sender: 'agent',
-            text: `Investigation complete for ${targetId}. I have compiled tool findings across 10 database & network graph inspectors. Ask me any follow-up question below!`
-          }
-        ]);
-      }
+      setReport(data);
+      setChatMessages([
+        {
+          sender: 'agent',
+          text: `Investigation complete for ${targetId}. I have compiled tool findings across 10 database & network graph inspectors. Ask me any follow-up question below!`
+        }
+      ]);
     } catch (e) {
       console.error('Failed to run investigation:', e);
     } finally {
@@ -72,20 +70,16 @@ export default function InvestigationsPage() {
     setAsking(true);
 
     try {
-      const res = await fetch(`http://localhost:8000/investigations/${report.transaction_id}/chat`, {
+      const data = await fetchApi<any>(`/investigations/${report.transaction_id}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: questionToAsk })
       });
-      if (res.ok) {
-        const data = await res.json();
-        const agentMsg: ChatMessage = {
-          sender: 'agent',
-          text: data.answer,
-          citations: data.citations
-        };
-        setChatMessages(prev => [...prev, agentMsg]);
-      }
+      const agentMsg: ChatMessage = {
+        sender: 'agent',
+        text: data.answer,
+        citations: data.citations
+      };
+      setChatMessages(prev => [...prev, agentMsg]);
     } catch (e) {
       console.error('Failed to ask question:', e);
     } finally {

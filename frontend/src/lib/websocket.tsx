@@ -20,7 +20,20 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [lastMessage, setLastMessage] = useState<any | null>(null);
 
   useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://127.0.0.1:8000/ws/payments';
+    const getWsUrl = () => {
+      if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'ws://127.0.0.1:8000/ws/payments';
+        }
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        return `${wsProtocol}//${window.location.host}/ws/payments`;
+      }
+      return 'ws://127.0.0.1:8000/ws/payments';
+    };
+
+    const wsUrl = getWsUrl();
     let ws: WebSocket;
     let connectTimer: NodeJS.Timeout;
     let reconnectTimer: NodeJS.Timeout;
@@ -48,8 +61,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         ws.onclose = () => {
           if (isMounted) {
             setIsConnected(false);
-            // Auto-reconnect after 2 seconds
-            reconnectTimer = setTimeout(connect, 2000);
+            // Auto-reconnect after 3 seconds
+            reconnectTimer = setTimeout(connect, 3000);
           }
         };
 
@@ -63,8 +76,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     };
 
-    // Delay connection slightly to bypass React 18 Strict Mode immediate unmount
-    connectTimer = setTimeout(connect, 50);
+    connectTimer = setTimeout(connect, 100);
 
     return () => {
       isMounted = false;

@@ -12,14 +12,14 @@ def db_session():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        # Seed test data for graph testing if empty
-        if db.query(Merchant).count() == 0:
-            mch = Merchant(id="mch_test_1", name="Test Merchant", category="RETAIL")
-            cust1 = Customer(id="cust_test_1", email_domain="gmail.com")
-            cust2 = Customer(id="cust_test_2", email_domain="gmail.com")
+        # Seed test data for graph testing if dev_shared_1 is missing
+        if not db.query(Device).filter(Device.id == "dev_shared_1").first():
+            mch = db.query(Merchant).filter(Merchant.id == "mch_test_1").first() or Merchant(id="mch_test_1", name="Test Merchant", category="RETAIL")
+            cust1 = db.query(Customer).filter(Customer.id == "cust_test_1").first() or Customer(id="cust_test_1", email_domain="gmail.com")
+            cust2 = db.query(Customer).filter(Customer.id == "cust_test_2").first() or Customer(id="cust_test_2", email_domain="gmail.com")
             dev = Device(id="dev_shared_1", fingerprint_hash="hash123", device_type="DESKTOP", os_name="WINDOWS")
-            ip = IPAddress(id="ip_shared_1", ip_address="192.168.1.100", country_code="USA")
-            pm = PaymentMethod(id="pm_test_1", card_hash="cardhash1", card_bin="411111")
+            ip = db.query(IPAddress).filter(IPAddress.id == "ip_shared_1").first() or IPAddress(id="ip_shared_1", ip_address="192.168.1.100", country_code="USA")
+            pm = db.query(PaymentMethod).filter(PaymentMethod.id == "pm_test_1").first() or PaymentMethod(id="pm_test_1", card_hash="cardhash1", card_bin="411111")
 
             db.add_all([mch, cust1, cust2, dev, ip, pm])
             db.commit()
