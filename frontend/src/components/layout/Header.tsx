@@ -74,8 +74,6 @@ export const Header = () => {
         <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-6">
           <Link href="/" className="font-mono text-sm font-bold tracking-[0.2em] text-primary">RISKGRAPH</Link>
           <nav className="hidden items-center gap-7 text-xs text-muted md:flex" aria-label="Marketing navigation">
-            <a href="#product" className="transition-colors hover:text-primary">Product</a>
-            <a href="#how-it-works" className="transition-colors hover:text-primary">How It Works</a>
             <a href="#demo" className="transition-colors hover:text-primary">Demo</a>
           </nav>
           <Link href="/dashboard" className="border border-subtle px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-primary transition-colors hover:border-primary">Open Console</Link>
