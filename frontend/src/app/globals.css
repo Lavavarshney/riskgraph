@@ -54,7 +54,9 @@
 @media (max-width: 768px) { .console-sidebar { display:none; } }
 .bg-app { background-color: var(--bg-app); }
 .border-strong { border-color: var(--border-strong); }
-.graph-shell { min-height: 420px; }
+.graph-shell { min-height: 560px; }
+.graph-shell .react-flow__node { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.graph-shell .react-flow__edge-text { letter-spacing: .02em; }
 .graph-shell .react-flow { min-height: 0; }
 .graph-shell .react-flow__panel { margin: 10px; }
 @media (max-width: 768px) { .graph-shell { min-height: 520px; } }
