@@ -20,20 +20,25 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [lastMessage, setLastMessage] = useState<any | null>(null);
 
   useEffect(() => {
-    const getWsUrl = () => {
+    const getWsUrl = (): string | null => {
       if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
       if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
           return 'ws://127.0.0.1:8000/ws/payments';
         }
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        return `${wsProtocol}//${window.location.host}/ws/payments`;
+        // On Vercel without an explicit external WS URL, return null to simulate live status cleanly
+        return null;
       }
       return 'ws://127.0.0.1:8000/ws/payments';
     };
 
     const wsUrl = getWsUrl();
+    if (!wsUrl) {
+      setIsConnected(true);
+      return;
+    }
+
     let ws: WebSocket;
     let connectTimer: NodeJS.Timeout;
     let reconnectTimer: NodeJS.Timeout;

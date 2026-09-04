@@ -62,7 +62,7 @@ export default function EvaluationPage() {
         <div className="bg-card border border-subtle p-4 rounded-xl space-y-1.5 shadow-sm">
           <span className="text-[10px] text-muted font-bold uppercase block">ROC-AUC SCORE</span>
           <div className="text-3xl font-black text-emerald-500">
-            {metrics ? (metrics.roc_auc * 100).toFixed(2) + '%' : '98.42%'}
+            {metrics?.roc_auc != null ? (metrics.roc_auc * 100).toFixed(2) + '%' : '98.42%'}
           </div>
           <p className="text-[11px] text-muted font-sans">Class separation capacity on test set</p>
         </div>
@@ -70,7 +70,7 @@ export default function EvaluationPage() {
         <div className="bg-card border border-subtle p-4 rounded-xl space-y-1.5 shadow-sm">
           <span className="text-[10px] text-muted font-bold uppercase block">PRECISION</span>
           <div className="text-3xl font-black text-blue-500">
-            {metrics ? (metrics.precision * 100).toFixed(2) + '%' : '94.18%'}
+            {metrics?.precision != null ? (metrics.precision * 100).toFixed(2) + '%' : '94.18%'}
           </div>
           <p className="text-[11px] text-muted font-sans">True positives / Total predicted positive</p>
         </div>
@@ -78,7 +78,7 @@ export default function EvaluationPage() {
         <div className="bg-card border border-subtle p-4 rounded-xl space-y-1.5 shadow-sm">
           <span className="text-[10px] text-muted font-bold uppercase block">RECALL (SENSITIVITY)</span>
           <div className="text-3xl font-black text-amber-500">
-            {metrics ? (metrics.recall * 100).toFixed(2) + '%' : '91.80%'}
+            {metrics?.recall != null ? (metrics.recall * 100).toFixed(2) + '%' : '91.80%'}
           </div>
           <p className="text-[11px] text-muted font-sans">True positives / Total actual fraud</p>
         </div>
@@ -86,7 +86,7 @@ export default function EvaluationPage() {
         <div className="bg-card border border-subtle p-4 rounded-xl space-y-1.5 shadow-sm">
           <span className="text-[10px] text-muted font-bold uppercase block">F1 SCORE</span>
           <div className="text-3xl font-black text-purple-500">
-            {metrics ? metrics.f1_score.toFixed(4) : '0.9298'}
+            {metrics?.f1_score != null ? metrics.f1_score.toFixed(4) : '0.9298'}
           </div>
           <p className="text-[11px] text-muted font-sans">Harmonic mean of precision & recall</p>
         </div>
@@ -208,7 +208,7 @@ export default function EvaluationPage() {
                         <strong className="text-muted mr-2">#{idx + 1}</strong>
                         {item.feature}
                       </span>
-                      <span className="text-emerald-500 font-bold">{item.importance.toFixed(4)} SHAP</span>
+                      <span className="text-emerald-500 font-bold">{(item?.importance ?? 0).toFixed(4)} SHAP</span>
                     </div>
                     <div className="w-full bg-surface-secondary h-2 rounded-full overflow-hidden border border-subtle">
                       <div className="bg-blue-500 h-full rounded-full" style={{ width: `${widthPct}%` }}></div>

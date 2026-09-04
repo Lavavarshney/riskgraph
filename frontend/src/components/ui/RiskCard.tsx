@@ -24,8 +24,10 @@ export const RiskCard: React.FC<{ data: RiskCardData; className?: string }> = ({
     }
   };
 
-  const isHighRisk = data.risk_score >= 70;
-  const isMedRisk = data.risk_score >= 35 && data.risk_score < 70;
+  const riskScore = data?.risk_score ?? 0;
+  const fraudProb = data?.fraud_probability ?? 0;
+  const isHighRisk = riskScore >= 70;
+  const isMedRisk = riskScore >= 35 && riskScore < 70;
 
   return (
     <div className={`bg-card border border-subtle rounded-xl p-4 space-y-3.5 shadow-sm ${className || ''}`}>
@@ -33,9 +35,9 @@ export const RiskCard: React.FC<{ data: RiskCardData; className?: string }> = ({
       <div className="flex items-center justify-between border-b border-subtle pb-2.5">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-blue-500" />
-          <span className="text-xs font-mono font-bold text-primary">{data.transaction_id}</span>
+          <span className="text-xs font-mono font-bold text-primary">{data?.transaction_id || 'N/A'}</span>
         </div>
-        {getDecisionBadge(data.decision)}
+        {getDecisionBadge(data?.decision || 'UNKNOWN')}
       </div>
 
       {/* Main Score Metrics */}
@@ -44,7 +46,7 @@ export const RiskCard: React.FC<{ data: RiskCardData; className?: string }> = ({
           <span className="text-[10px] uppercase text-muted font-bold">RISK SCORE</span>
           <div className="text-2xl font-black text-primary mt-0.5">
             <span className={isHighRisk ? 'text-rose-500' : isMedRisk ? 'text-amber-500' : 'text-emerald-500'}>
-              {Math.round(data.risk_score)}
+              {Math.round(riskScore)}
             </span>
             <span className="text-xs text-muted font-normal"> / 100</span>
           </div>
@@ -56,12 +58,12 @@ export const RiskCard: React.FC<{ data: RiskCardData; className?: string }> = ({
         <div className="p-3 rounded-lg bg-surface-secondary border border-subtle flex flex-col items-center justify-center">
           <span className="text-[10px] uppercase text-muted font-bold">FRAUD PROBABILITY</span>
           <div className="text-2xl font-black text-primary mt-0.5">
-            {(data.fraud_probability * 100).toFixed(1)}%
+            {(fraudProb * 100).toFixed(1)}%
           </div>
           <div className="w-full bg-border border-subtle h-1.5 rounded-full overflow-hidden mt-1.5">
             <div
               className={`h-full rounded-full ${isHighRisk ? 'bg-rose-500' : isMedRisk ? 'bg-amber-500' : 'bg-emerald-500'}`}
-              style={{ width: `${Math.min(100, Math.max(5, data.fraud_probability * 100))}%` }}
+              style={{ width: `${Math.min(100, Math.max(5, fraudProb * 100))}%` }}
             ></div>
           </div>
         </div>

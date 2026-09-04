@@ -18,6 +18,19 @@ interface MerchantPolicy {
   maximum_transaction_amount_for_auto_block: number;
 }
 
+const DEFAULT_POLICY: MerchantPolicy = {
+  id: 'pol_merchant_global_v1',
+  name: 'Global Default Containment Policy',
+  individual_risk_threshold: 70.0,
+  network_risk_threshold: 70.0,
+  auto_block_enabled: true,
+  auto_challenge_enabled: true,
+  device_quarantine_threshold: 5,
+  ip_quarantine_threshold: 8,
+  minimum_account_age_for_auto_block: 1440,
+  maximum_transaction_amount_for_auto_block: 2500.0,
+};
+
 export default function PoliciesPage() {
   const [policy, setPolicy] = useState<MerchantPolicy | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,12 +43,17 @@ export default function PoliciesPage() {
 
   const fetchPolicy = async () => {
     try {
-      const data = await fetchApi<MerchantPolicy[]>('/policies');
-      if (data.length > 0) {
-        setPolicy(data[0]);
+      const data = await fetchApi<any>('/policies');
+      if (Array.isArray(data) && data.length > 0) {
+        setPolicy({ ...DEFAULT_POLICY, ...data[0] });
+      } else if (data && typeof data === 'object' && !Array.isArray(data)) {
+        setPolicy({ ...DEFAULT_POLICY, ...data });
+      } else {
+        setPolicy(DEFAULT_POLICY);
       }
     } catch (e) {
       console.error('Failed to fetch policy:', e);
+      setPolicy(DEFAULT_POLICY);
     } finally {
       setLoading(false);
     }

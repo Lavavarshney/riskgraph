@@ -231,7 +231,7 @@ export default function TransactionDetailsPage() {
                   <div className="flex justify-between text-primary mb-1">
                     <span>{name}</span>
                     <span className={isPositive ? 'text-rose-500 font-bold' : 'text-emerald-500 font-bold'}>
-                      {isPositive ? `+${val.toFixed(4)}` : val.toFixed(4)}
+                      {isPositive ? `+${(val ?? 0).toFixed(4)}` : (val ?? 0).toFixed(4)}
                     </span>
                   </div>
                   <div className="w-full bg-surface-secondary h-2 rounded-full overflow-hidden border border-subtle">
@@ -264,7 +264,7 @@ export default function TransactionDetailsPage() {
                   <tr key={key} className="hover:bg-surface-secondary transition-colors">
                     <td className="py-1.5 text-muted">{key}</td>
                     <td className="py-1.5 text-right font-bold text-primary">
-                      {typeof val === 'number' ? (val % 1 !== 0 ? val.toFixed(2) : val) : val}
+                      {typeof val === 'number' ? (val % 1 !== 0 ? (val ?? 0).toFixed(2) : val) : (val ?? '')}
                     </td>
                   </tr>
                 ))}

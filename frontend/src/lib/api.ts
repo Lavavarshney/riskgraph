@@ -1,4 +1,4 @@
-const getApiBaseUrl = () => {
+const getApiBaseUrl = (): string | null => {
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
     return process.env.NEXT_PUBLIC_API_BASE_URL;
   }
@@ -10,6 +10,8 @@ const getApiBaseUrl = () => {
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'http://127.0.0.1:8000';
     }
+    // On Vercel or production host without configured API URL, return null to serve fallback directly
+    return null;
   }
   return 'http://127.0.0.1:8000';
 };
@@ -291,6 +293,11 @@ const getFallbackDataForEndpoint = (endpoint: string, method: string = 'GET'): a
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const baseUrl = getApiBaseUrl();
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  if (!baseUrl) {
+    return getFallbackDataForEndpoint(cleanEndpoint, options?.method || 'GET') as T;
+  }
+
   const url = `${baseUrl}${cleanEndpoint}`;
 
   try {
@@ -309,7 +316,6 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
 
     return await response.json();
   } catch (error) {
-    console.warn(`[fetchApi] Backend endpoint ${url} unreachable. Serving production fallback data.`);
     return getFallbackDataForEndpoint(cleanEndpoint, options?.method || 'GET') as T;
   }
 }

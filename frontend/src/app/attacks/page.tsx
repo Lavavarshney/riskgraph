@@ -340,7 +340,7 @@ export default function AttacksPage() {
                             <span className="text-muted text-[11px]">Action: <strong className="text-blue-500">{recommendedOption.action}</strong></span>
                           </div>
                           <div className="text-right">
-                            <span className="text-primary font-bold block">${recommendedOption.estimated_loss_prevented.toFixed(2)} Loss Prevented</span>
+                            <span className="text-primary font-bold block">${((recommendedOption?.estimated_loss_prevented ?? 0)).toFixed(2)} Loss Prevented</span>
                             <span className="text-muted text-[10px]">{recommendedOption.transactions_affected} Txs Affected</span>
                           </div>
                         </div>
@@ -462,7 +462,7 @@ export default function AttacksPage() {
             </p>
             <div className="p-3 bg-surface-secondary rounded text-xs space-y-1 text-muted">
               <div>Affected Transactions: <strong className="text-primary">{pendingAction.transactions_affected}</strong></div>
-              <div>Estimated Loss Prevented: <strong className="text-emerald-500">${pendingAction.estimated_loss_prevented.toFixed(2)}</strong></div>
+              <div>Estimated Loss Prevented: <strong className="text-emerald-500">${((pendingAction?.estimated_loss_prevented ?? 0)).toFixed(2)}</strong></div>
             </div>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button

@@ -366,7 +366,7 @@ export default function DashboardPage() {
                     <td className="px-4 py-2.5 text-primary">{tx.merchant_id}</td>
                     <td className="px-4 py-2.5 text-muted">{tx.customer_id}</td>
                     <td className="px-4 py-2.5 text-muted">{tx.device_id} / {tx.ip_id}</td>
-                    <td className="px-4 py-2.5 font-bold text-primary">${tx.amount.toFixed(2)}</td>
+                    <td className="px-4 py-2.5 font-bold text-primary">${((tx?.amount ?? 0)).toFixed(2)}</td>
                     <td className="px-4 py-2.5">
                       <Badge variant={tx.status === 'APPROVED' ? 'success' : 'danger'}>
                         {tx.status}

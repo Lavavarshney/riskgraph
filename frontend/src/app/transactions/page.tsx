@@ -169,7 +169,7 @@ export default function TransactionsPage() {
                       <td className="px-4 py-2.5 font-bold text-blue-500">{tx.id}</td>
                       <td className="px-4 py-2.5 text-primary">{tx.merchant_id}</td>
                       <td className="px-4 py-2.5 text-muted">{tx.customer_id}</td>
-                      <td className="px-4 py-2.5 font-bold text-primary">${tx.amount.toFixed(2)}</td>
+                      <td className="px-4 py-2.5 font-bold text-primary">${((tx?.amount ?? 0)).toFixed(2)}</td>
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-1.5 font-bold">
                           <span className={isHigh ? 'text-rose-500' : isMed ? 'text-amber-500' : 'text-emerald-500'}>
