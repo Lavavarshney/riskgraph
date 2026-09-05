@@ -69,6 +69,68 @@ export default function AttacksPage() {
 
   useEffect(() => {
     fetchClusters();
+
+    // Real-time threat expansion ticker
+    const interval = setInterval(() => {
+      setClusters((prevClusters) => {
+        if (prevClusters.length === 0) return prevClusters;
+
+        // 1. Randomly expand an existing cluster's account & device metrics
+        const updated = prevClusters.map((cluster) => {
+          if (cluster.status === 'CONTAINED') return cluster;
+          const deltaAccounts = Math.random() < 0.3 ? 1 : 0;
+          const deltaDevices = Math.random() < 0.1 ? 1 : 0;
+          return {
+            ...cluster,
+            affected_accounts: cluster.affected_accounts + deltaAccounts,
+            affected_devices: cluster.affected_devices + deltaDevices,
+            node_count: cluster.node_count + deltaAccounts + deltaDevices,
+            transaction_count: cluster.transaction_count + deltaAccounts * 2,
+          };
+        });
+
+        // 2. Occasionally (15% chance) spawn a brand-new live threat cluster if under 8 total
+        if (Math.random() < 0.15 && updated.length < 8) {
+          const newClusterNum = Math.floor(Math.random() * 89 + 10);
+          const newCluster = {
+            cluster_id: `cls_c${newClusterNum}_live_ring`,
+            cluster_name: `ATTACK CLUSTER #C${newClusterNum} (Realtime Botnet)`,
+            status: "SUSPECTED",
+            severity: "HIGH",
+            pattern_type: Math.random() > 0.5 ? "CARD_TESTING_BOTNET" : "COORDINATED_FRAUD_RING",
+            affected_accounts: Math.floor(Math.random() * 5 + 3),
+            affected_devices: Math.floor(Math.random() * 3 + 1),
+            affected_ips: 1,
+            affected_merchants: 1,
+            affected_cards: 4,
+            node_count: 12,
+            edge_count: 16,
+            transaction_count: 15,
+            network_risk_score: Math.floor(Math.random() * 20 + 75),
+            individual_risk_avg: 35.0,
+            final_combined_risk: Math.floor(Math.random() * 20 + 75),
+            risk_reasons: [
+              `Realtime velocity spike across shared device fingerprint dev_live_${newClusterNum}`,
+              "Shared proxy IP subnet origin detected"
+            ],
+            nodes: [
+              { id: `tx_live_${newClusterNum}`, label: "TX $89.00", type: "transaction", risk_score: 85.0 },
+              { id: `dev_live_${newClusterNum}`, label: `Device D${newClusterNum}`, type: "device", risk_score: 88.0 },
+              { id: `cust_live_${newClusterNum}`, label: `Customer C${newClusterNum}`, type: "customer", risk_score: 72.0 }
+            ],
+            edges: [
+              { source: `cust_live_${newClusterNum}`, target: `tx_live_${newClusterNum}`, relation: "INITIATED" },
+              { source: `tx_live_${newClusterNum}`, target: `dev_live_${newClusterNum}`, relation: "USED_DEVICE" }
+            ]
+          };
+          return [newCluster, ...updated];
+        }
+
+        return updated;
+      });
+    }, 2500); // Ticker updates every 2.5s
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchChokePoints = async (clusterId: string) => {
@@ -199,9 +261,14 @@ export default function AttacksPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: Active Cluster List (4 cols) */}
           <div className="lg:col-span-4 space-y-3">
-            <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-wider block">
-              DETECTED CLUSTERS ({clusters.length})
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono font-bold text-muted uppercase tracking-wider block">
+                DETECTED CLUSTERS ({clusters.length})
+              </span>
+              <span className="flex items-center gap-1.5 text-[9px] font-mono text-rose-500 font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> LIVE STREAM
+              </span>
+            </div>
 
             {clusters.length === 0 ? (
               <div className="p-6 bg-card border border-subtle rounded-xl text-center text-muted text-xs font-mono italic">

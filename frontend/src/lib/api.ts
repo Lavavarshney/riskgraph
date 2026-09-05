@@ -95,6 +95,115 @@ const getFallbackDataForEndpoint = (endpoint: string, method: string = 'GET'): a
         risk_reasons: [
           "Datacenter proxy IP shared across 8 customer accounts",
           "High failure rate across card testing attempts"
+        ],
+        nodes: [
+          { id: "tx_botnet_01", label: "TX $1.50", type: "transaction", risk_score: 84.5 },
+          { id: "ip_proxy_alpha", label: "Proxy IP Alpha", type: "ip", risk_score: 88.0 },
+          { id: "dev_botnet_01", label: "Device Bot #1", type: "device", risk_score: 78.0 },
+          { id: "cust_botnet_01", label: "Customer #88", type: "customer", risk_score: 65.0 }
+        ],
+        edges: [
+          { source: "cust_botnet_01", target: "tx_botnet_01", relation: "INITIATED" },
+          { source: "tx_botnet_01", target: "dev_botnet_01", relation: "USED_DEVICE" },
+          { source: "dev_botnet_01", target: "ip_proxy_alpha", relation: "CONNECTED_IP" }
+        ]
+      },
+      {
+        cluster_id: "cls_ato_burst_delta",
+        cluster_name: "Account Takeover Credential Stuffing Ring",
+        status: "CONFIRMED",
+        severity: "CRITICAL",
+        pattern_type: "ACCOUNT_TAKEOVER",
+        affected_accounts: 22,
+        affected_devices: 5,
+        affected_ips: 2,
+        affected_merchants: 2,
+        affected_cards: 6,
+        node_count: 45,
+        edge_count: 68,
+        transaction_count: 42,
+        network_risk_score: 91.0,
+        individual_risk_avg: 28.0,
+        final_combined_risk: 91.0,
+        risk_reasons: [
+          "Credential stuffing signature detected across 22 accounts",
+          "Anomalous foreign IP ASN velocity spike",
+          "Rapid high-value wallet cashout attempt"
+        ],
+        nodes: [
+          { id: "tx_ato_901", label: "TX $1,250.00", type: "transaction", risk_score: 91.0 },
+          { id: "dev_ato_stealth", label: "Compromised Device", type: "device", risk_score: 89.0 },
+          { id: "ip_foreign_asn", label: "Tor Exit Node IP", type: "ip", risk_score: 95.0 },
+          { id: "cust_vip_victim", label: "Victim Customer #401", type: "customer", risk_score: 30.0 }
+        ],
+        edges: [
+          { source: "cust_vip_victim", target: "tx_ato_901", relation: "INITIATED" },
+          { source: "tx_ato_901", target: "dev_ato_stealth", relation: "USED_DEVICE" },
+          { source: "tx_ato_901", target: "ip_foreign_asn", relation: "ORIGINATED_FROM" }
+        ]
+      },
+      {
+        cluster_id: "cls_card_testing_omega",
+        cluster_name: "Micro-Tx Velocity Card Testing Botnet",
+        status: "SUSPECTED",
+        severity: "HIGH",
+        pattern_type: "CARD_TESTING_BOTNET",
+        affected_accounts: 31,
+        affected_devices: 8,
+        affected_ips: 3,
+        affected_merchants: 4,
+        affected_cards: 42,
+        node_count: 56,
+        edge_count: 84,
+        transaction_count: 65,
+        network_risk_score: 88.0,
+        individual_risk_avg: 40.0,
+        final_combined_risk: 88.0,
+        risk_reasons: [
+          "High-velocity micro-payments ($0.99) fired across 42 stolen card BINs",
+          "Identical fingerprint header hash across 31 accounts"
+        ],
+        nodes: [
+          { id: "tx_micro_01", label: "TX $0.99", type: "transaction", risk_score: 88.0 },
+          { id: "dev_micro_runner", label: "Automated Runner Bot", type: "device", risk_score: 87.0 },
+          { id: "ip_vpn_exit", label: "Residential VPN IP", type: "ip", risk_score: 76.0 },
+          { id: "pm_stolen_bin", label: "Stolen Card BIN #4111", type: "payment_method", risk_score: 85.0 }
+        ],
+        edges: [
+          { source: "tx_micro_01", target: "dev_micro_runner", relation: "USED_DEVICE" },
+          { source: "tx_micro_01", target: "ip_vpn_exit", relation: "ORIGINATED_FROM" },
+          { source: "tx_micro_01", target: "pm_stolen_bin", relation: "USED_CARD" }
+        ]
+      },
+      {
+        cluster_id: "cls_promo_farm_bravo",
+        cluster_name: "Synthetic Welcome Promo Abuser Farm",
+        status: "INVESTIGATING",
+        severity: "MEDIUM",
+        pattern_type: "SYBIL_ACCOUNT_FARM",
+        affected_accounts: 19,
+        affected_devices: 3,
+        affected_ips: 1,
+        affected_merchants: 1,
+        affected_cards: 2,
+        node_count: 28,
+        edge_count: 38,
+        transaction_count: 19,
+        network_risk_score: 79.0,
+        individual_risk_avg: 15.0,
+        final_combined_risk: 79.0,
+        risk_reasons: [
+          "19 synthetic customer accounts created within 10 minutes",
+          "Shared promo code WELCOME50 cashout pattern"
+        ],
+        nodes: [
+          { id: "tx_promo_01", label: "TX $0.00 (Promo)", type: "transaction", risk_score: 79.0 },
+          { id: "dev_farm_master", label: "Farm Master Device", type: "device", risk_score: 81.0 },
+          { id: "cust_synth_01", label: "Synthetic Customer #01", type: "customer", risk_score: 72.0 }
+        ],
+        edges: [
+          { source: "cust_synth_01", target: "tx_promo_01", relation: "INITIATED" },
+          { source: "tx_promo_01", target: "dev_farm_master", relation: "USED_DEVICE" }
         ]
       }
     ];
