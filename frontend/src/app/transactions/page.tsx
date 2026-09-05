@@ -97,9 +97,46 @@ const sampleTransactions: TxItem[] = [
 ];
 
 export default function TransactionsPage() {
+  const [transactions, setTransactions] = useState<TxItem[]>(sampleTransactions);
   const [selectedTx, setSelectedTx] = useState<TxItem>(sampleTransactions[0]);
   const [riskCardData, setRiskCardData] = useState<RiskCardData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+  // Live Simulation Generator for the hackathon demo
+  useEffect(() => {
+    const merchants = ['merch_gaming_vault', 'merch_tech_direct', 'merch_digital_goods', 'merch_global_retail'];
+    const countries = ['USA', 'GBR', 'CAN', 'IND', 'SGP', 'NGA'];
+    
+    const interval = setInterval(() => {
+      const isFraudTick = Math.random() < 0.25; // 25% chance of anomalous transaction
+      const riskScore = isFraudTick ? Math.floor(Math.random() * 30 + 70) : Math.floor(Math.random() * 40 + 10);
+      const decision = riskScore >= 80 ? 'BLOCK_REVIEW' : riskScore >= 60 ? 'STEP_UP' : 'ALLOW';
+      const status = riskScore >= 80 ? 'FLAGGED' : riskScore >= 60 ? 'CHALLENGED' : 'APPROVED';
+      const fraudType = isFraudTick ? (Math.random() > 0.5 ? 'CARD_TESTING' : 'SYBIL_RING') : 'NORMAL';
+      
+      const newTx: TxItem = {
+        id: `tx_${Math.floor(Math.random() * 899999 + 100000)}`,
+        time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+        merchant_id: merchants[Math.floor(Math.random() * merchants.length)],
+        customer_id: `cust_${Math.floor(Math.random() * 8999 + 1000)}`,
+        device_id: `dev_${Math.floor(Math.random() * 8999 + 1000)}`,
+        ip_id: `ip_${Math.floor(Math.random() * 8999 + 1000)}`,
+        payment_method_id: `pm_${Math.floor(Math.random() * 8999 + 1000)}`,
+        amount: parseFloat((Math.random() * 500 + 10).toFixed(2)),
+        country: countries[Math.floor(Math.random() * countries.length)],
+        failed_attempts_recent: isFraudTick ? Math.floor(Math.random() * 5) : 0,
+        account_age_minutes: isFraudTick ? Math.floor(Math.random() * 60) : Math.floor(Math.random() * 50000 + 1000),
+        fraud_type: fraudType,
+        risk_score: riskScore,
+        decision: decision,
+        status: status,
+      };
+
+      setTransactions((prev) => [newTx, ...prev].slice(0, 50)); // Keep last 50
+    }, 1500); // Add a new transaction every 1.5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const scoreTransaction = async (tx: TxItem) => {
     setSelectedTx(tx);
@@ -132,15 +169,17 @@ export default function TransactionsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Transaction Table (8 cols) */}
-        <div className="lg:col-span-8 bg-card border border-subtle rounded-xl overflow-hidden shadow-sm">
-          <div className="p-3.5 border-b border-subtle bg-surface-secondary flex items-center justify-between font-mono">
-            <span className="text-xs font-bold text-muted uppercase">TRANSACTION RISK STREAM</span>
+        <div className="lg:col-span-8 bg-card border border-subtle rounded-xl overflow-hidden shadow-sm flex flex-col max-h-[800px]">
+          <div className="p-3.5 border-b border-subtle bg-surface-secondary flex items-center justify-between font-mono shrink-0">
+            <span className="text-xs font-bold text-muted uppercase flex items-center gap-2">
+              <Zap className="w-3.5 h-3.5 text-blue-500 animate-pulse" /> LIVE RISK STREAM
+            </span>
             <span className="text-[11px] text-muted">Click row to inspect risk breakdown</span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-surface-secondary text-muted uppercase border-b border-subtle">
+          <div className="overflow-y-auto flex-1">
+            <table className="w-full text-left text-xs font-mono relative">
+              <thead className="bg-surface-secondary text-muted uppercase border-b border-subtle sticky top-0 z-10 shadow-sm">
                 <tr>
                   <th className="px-4 py-2.5">Time</th>
                   <th className="px-4 py-2.5">Transaction</th>
@@ -153,7 +192,7 @@ export default function TransactionsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-subtle">
-                {sampleTransactions.map((tx) => {
+                {transactions.map((tx) => {
                   const isSelected = selectedTx.id === tx.id;
                   const isHigh = tx.risk_score >= 70;
                   const isMed = tx.risk_score >= 35 && tx.risk_score < 70;
