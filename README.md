@@ -79,7 +79,7 @@ graph TD
 
 ##  Key Capabilities & Technical Innovations
 
-### 1. 🕸️ Multi-Hop Graph Topology Traversal Engine
+### 1.  Multi-Hop Graph Topology Traversal Engine
 - Performs **2-hop relational expansion** around any transaction, device, IP, or customer in real-time.
 - Automatically connects shared infrastructure nodes:
   - `Customer -> Transaction (INITIATED)`
