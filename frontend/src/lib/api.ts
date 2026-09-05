@@ -159,35 +159,68 @@ const getFallbackDataForEndpoint = (endpoint: string, method: string = 'GET'): a
   }
 
   if (clean.includes('/graph/subgraph/') || clean.includes('/graph/transaction/') || clean.includes('/graph/entity/')) {
-    const entityId = clean.split('/').pop()?.split('?')[0] || 'tx_1';
+    const rawId = clean.split('/').pop()?.split('?')[0] || 'tx_1';
+    const entityId = rawId.trim();
+
+    // Simple hash for deterministic, entity-specific graph generation
+    let hash = 0;
+    for (let i = 0; i < entityId.length; i++) {
+      hash = (hash << 5) - hash + entityId.charCodeAt(i);
+      hash |= 0;
+    }
+    const absHash = Math.abs(hash);
+
+    const custNum = (absHash % 899) + 100;
+    const devNum = ((absHash * 3) % 8999) + 1000;
+    const ipNum = ((absHash * 7) % 8999) + 1000;
+    const pmNum = ((absHash * 11) % 8999) + 1000;
+    const mchNum = (absHash % 19) + 1;
+    const amount = (absHash % 900) + 24.50;
+
+    const mainRisk = (absHash % 40) + 55; // 55 - 95
+    const devRisk = ((absHash * 2) % 35) + 60;
+    const ipRisk = ((absHash * 3) % 40) + 50;
+
+    const custId = `cust_${custNum}`;
+    const devId = `dev_${devNum}`;
+    const ipId = `ip_${ipNum}`;
+    const pmId = `pm_${pmNum}`;
+    const mchId = `mch_${mchNum}`;
+
+    let mainNodeLabel = `TX $${amount.toFixed(2)}`;
+    let mainNodeType = "transaction";
+    if (entityId.startsWith('cust_')) { mainNodeType = "customer"; mainNodeLabel = `Customer ${entityId}`; }
+    else if (entityId.startsWith('dev_')) { mainNodeType = "device"; mainNodeLabel = `Device ${entityId}`; }
+    else if (entityId.startsWith('ip_')) { mainNodeType = "ip"; mainNodeLabel = `IP ${entityId}`; }
+
     return {
       nodes: [
-        { id: entityId, label: `TX $217.64`, type: "transaction", risk_score: 75.0, details: { amount: 217.64, status: "APPROVED" } },
-        { id: "cust_109", label: "Customer cust_109", type: "customer", risk_score: 45.0 },
-        { id: "dev_2379", label: "Device dev_2379", type: "device", risk_score: 82.0 },
-        { id: "ip_3167", label: "IP ip_3167", type: "ip", risk_score: 78.0 },
-        { id: "pm_227", label: "Card pm_227", type: "payment_method", risk_score: 65.0 },
-        { id: "mch_7", label: "Merchant mch_7", type: "merchant", risk_score: 15.0 }
+        { id: entityId, label: mainNodeLabel, type: mainNodeType, risk_score: mainRisk, details: { amount, status: "APPROVED" } },
+        { id: custId, label: `Customer ${custId}`, type: "customer", risk_score: (absHash % 40) + 25 },
+        { id: devId, label: `Device ${devId}`, type: "device", risk_score: devRisk },
+        { id: ipId, label: `IP ${ipId}`, type: "ip", risk_score: ipRisk },
+        { id: pmId, label: `Card ${pmId}`, type: "payment_method", risk_score: (absHash % 30) + 40 },
+        { id: mchId, label: `Merchant ${mchId}`, type: "merchant", risk_score: 15.0 }
       ],
       edges: [
-        { id: "e1", source: "cust_109", target: entityId, relation: "INITIATED", label: "initiated" },
-        { id: "e2", source: entityId, target: "dev_2379", relation: "USED_DEVICE", label: "used device" },
-        { id: "e3", source: entityId, target: "ip_3167", relation: "ORIGINATED_FROM", label: "originated from" },
-        { id: "e4", source: entityId, target: "pm_227", relation: "USED_CARD", label: "used card" },
-        { id: "e5", source: entityId, target: "mch_7", relation: "PROCESSED_BY", label: "processed by" },
-        { id: "e6", source: "dev_2379", target: "ip_3167", relation: "CONNECTED_IP", label: "connected ip" },
-        { id: "e7", source: "cust_109", target: "dev_2379", relation: "HAS_DEVICE", label: "has device" }
+        { id: "e1", source: custId, target: entityId, relation: "INITIATED", label: "initiated" },
+        { id: "e2", source: entityId, target: devId, relation: "USED_DEVICE", label: "used device" },
+        { id: "e3", source: entityId, target: ipId, relation: "ORIGINATED_FROM", label: "originated from" },
+        { id: "e4", source: entityId, target: pmId, relation: "USED_CARD", label: "used card" },
+        { id: "e5", source: entityId, target: mchId, relation: "PROCESSED_BY", label: "processed by" },
+        { id: "e6", source: devId, target: ipId, relation: "CONNECTED_IP", label: "connected ip" },
+        { id: "e7", source: custId, target: devId, relation: "HAS_DEVICE", label: "has device" }
       ],
-      network_risk_score: 75.0,
+      network_risk_score: mainRisk,
       reasons: [
-        "Multi-account device reuse detected across graph topology",
-        "Proxy IP connection from foreign ASN"
+        `Infrastructure sharing detected for ${entityId}`,
+        `Device ${devId} & IP ${ipId} reuse across network cluster`
       ],
       network_signals: {
-        device_account_count: 14,
-        ip_account_count: 18,
+        device_account_count: (absHash % 12) + 2,
+        ip_account_count: (absHash % 18) + 3,
         shared_device_ratio: 0.85,
-        connected_transaction_count: 38
+        connected_transaction_count: (absHash % 40) + 10
       }
     };
   }
