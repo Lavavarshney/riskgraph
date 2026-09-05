@@ -146,10 +146,12 @@ class InvestigationTools:
     @staticmethod
     def get_containment_options(db: Session, cluster_id: str) -> List[Dict[str, Any]]:
         cluster = InvestigationTools.get_attack_cluster(db, cluster_id)
+        if not cluster:
+            return []
         from app.modules.attacks.schemas import AttackCluster
         c_obj = AttackCluster(**cluster)
         candidates = ContainmentOptimizer.evaluate_containment_options(c_obj)
-        return [c.dict() for c in candidates]
+        return [c.dict() if hasattr(c, "dict") else c.model_dump() for c in candidates]
 
     @staticmethod
     def get_action_history(db: Session, entity_id: str) -> List[Dict[str, Any]]:

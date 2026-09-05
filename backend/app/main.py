@@ -10,31 +10,14 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-# Build explicit origins list robustly
-origins = set()
-for origin in settings.BACKEND_CORS_ORIGINS:
-    origin_str = str(origin).strip()
-    if origin_str.startswith("[") and origin_str.endswith("]"):
-        import json
-        try:
-            origins.update(json.loads(origin_str))
-        except:
-            origins.add(origin_str)
-    else:
-        origins.update([o.strip() for o in origin_str.split(",") if o.strip()])
-
-origins.update([
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://riskgraph.vercel.app",
-    "http://riskgraph.vercel.app"
-])
-
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=list(origins),
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://riskgraph.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
