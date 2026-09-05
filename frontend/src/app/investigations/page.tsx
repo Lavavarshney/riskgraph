@@ -37,6 +37,17 @@ export default function InvestigationsPage() {
     { id: 'tx_ip_botnet_01', desc: 'Datacenter Proxy Botnet Payment ($199.00)' },
   ];
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const queryTx = params.get('txId');
+      if (queryTx) {
+        setTxId(queryTx);
+        handleInvestigate(queryTx);
+      }
+    }
+  }, []);
+
   const handleInvestigate = async (idToInvestigate?: string) => {
     const targetId = idToInvestigate || txId;
     setLoading(true);
@@ -102,16 +113,16 @@ export default function InvestigationsPage() {
         </div>
 
         {/* Input & Action */}
-        <div className="flex items-center gap-2 font-mono">
-          <select
-            value={txId}
-            onChange={(e) => setTxId(e.target.value)}
-            className="bg-surface border border-subtle text-primary text-xs rounded-lg px-3 py-1.5 font-mono"
-          >
-            {sampleTransactions.map(t => (
-              <option key={t.id} value={t.id}>{t.id} - {t.desc}</option>
-            ))}
-          </select>
+        <div className="flex flex-wrap items-center gap-2 font-mono">
+          <div className="relative">
+            <input
+              type="text"
+              value={txId}
+              onChange={(e) => setTxId(e.target.value)}
+              placeholder="Enter Tx ID (e.g. tx_98124, tx_stealth_01)..."
+              className="bg-surface border border-subtle text-primary text-xs rounded-lg px-3 py-1.5 font-mono w-64 focus:outline-none focus:border-blue-500"
+            />
+          </div>
           <button
             onClick={() => handleInvestigate()}
             disabled={loading}
