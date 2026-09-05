@@ -42,9 +42,68 @@ const DEFAULT_SHAP: Record<string, number> = {
   country_risk_score: -0.0410
 };
 
+// Helper to generate deterministic seed from txId string
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
 export default function TransactionDetailsPage() {
   const params = useParams();
-  const txId = (params?.id as string) || 'tx_stealth_01';
+  const txId = (params?.id as string) || 'tx_98124';
+
+  const seed = hashString(txId);
+  const isHighRiskTx = seed % 3 === 0 || txId.includes('stealth') || txId.includes('botnet') || txId.includes('126479') || txId.includes('901755');
+  
+  const dynamicAmount = parseFloat(((seed % 1800) + 24.50).toFixed(2));
+  const dynamicDevAccounts = (seed % 15) + 2;
+  const dynamicIpAccounts = (seed % 20) + 3;
+  const dynamicFailedAttempts = (seed % 6);
+  const dynamicAge = (seed % 500) + 12;
+  const dynamicRecentTxs = (seed % 12) + 1;
+  const dynamicDevice = `dev_${(seed % 8999) + 1000}`;
+  const dynamicIp = `ip_${(seed % 8999) + 1000}`;
+  const dynamicCust = `cust_${(seed % 899) + 100}`;
+
+  const dynamicIndividualScore = isHighRiskTx ? 78 + (seed % 18) : 12 + (seed % 28);
+  const dynamicNetworkScore = isHighRiskTx ? 82 + (seed % 15) : 15 + (seed % 25);
+
+  const DYNAMIC_FEATURES: Record<string, number> = {
+    device_account_count: dynamicDevAccounts,
+    ip_account_count: dynamicIpAccounts,
+    failed_attempts_recent: dynamicFailedAttempts,
+    account_age_minutes: dynamicAge,
+    transactions_last_10m: dynamicRecentTxs,
+    amount: dynamicAmount,
+    shared_device_ratio: isHighRiskTx ? parseFloat(((seed % 40 + 55) / 100).toFixed(2)) : 0.05,
+    card_velocity_1h: (seed % 8) + 1,
+    country_risk_score: isHighRiskTx ? 65.0 : 12.0,
+    email_domain_risk: isHighRiskTx ? 72.0 : 15.0,
+    distance_from_last_tx_km: (seed % 2500) + 10,
+    proxy_asn_score: isHighRiskTx ? 88.0 : 5.0,
+    device_type_risk: 25.0,
+    billing_zip_mismatch: isHighRiskTx ? 1 : 0,
+    promo_code_reuse_count: isHighRiskTx ? (seed % 12) + 2 : 0
+  };
+
+  const DYNAMIC_SHAP: Record<string, number> = isHighRiskTx ? {
+    device_account_count: parseFloat(((seed % 20 + 25) / 100).toFixed(4)),
+    ip_account_count: parseFloat(((seed % 15 + 18) / 100).toFixed(4)),
+    failed_attempts_recent: parseFloat(((seed % 10 + 10) / 100).toFixed(4)),
+    proxy_asn_score: 0.1140,
+    account_age_minutes: -0.0420,
+    country_risk_score: -0.0210
+  } : {
+    account_age_minutes: -0.1520,
+    card_velocity_1h: 0.0340,
+    country_risk_score: -0.0820,
+    device_account_count: 0.0120,
+    failed_attempts_recent: -0.0410
+  };
 
   const [data, setData] = useState<ExtendedRiskData | null>(null);
   const [graphData, setGraphData] = useState<any | null>(null);
@@ -57,14 +116,14 @@ export default function TransactionDetailsPage() {
       try {
         const payload = {
           id: txId,
-          amount: 1450.0,
-          account_age_minutes: 45,
-          failed_attempts_recent: 4,
-          transactions_last_10m: 8,
-          device_account_count: 14,
-          ip_account_count: 18,
+          amount: dynamicAmount,
+          account_age_minutes: dynamicAge,
+          failed_attempts_recent: dynamicFailedAttempts,
+          transactions_last_10m: dynamicRecentTxs,
+          device_account_count: dynamicDevAccounts,
+          ip_account_count: dynamicIpAccounts,
           country: 'USA',
-          fraud_type: 'COORDINATED_FRAUD_RING',
+          fraud_type: isHighRiskTx ? 'COORDINATED_FRAUD_RING' : 'LEGITIMATE',
         };
         const res = await fetchApi<any>('/api/v1/risk/score', {
           method: 'POST',
@@ -73,22 +132,19 @@ export default function TransactionDetailsPage() {
 
         setData({
           transaction_id: txId,
-          risk_score: res.risk_score || 84.0,
-          fraud_probability: res.fraud_probability || 0.84,
-          decision: res.decision || 'BLOCK_REVIEW',
-          top_reasons: res.top_reasons || [
-            "Device fingerprint shared across 14 customer accounts",
+          risk_score: res.risk_score || dynamicIndividualScore,
+          fraud_probability: res.fraud_probability || (dynamicIndividualScore / 100),
+          decision: res.decision || (isHighRiskTx ? 'BLOCK_REVIEW' : 'APPROVED'),
+          top_reasons: res.top_reasons || (isHighRiskTx ? [
+            `Device fingerprint shared across ${dynamicDevAccounts} customer accounts`,
             "Burst payment velocity from foreign proxy IP"
-          ],
-          features: (res.features && Object.keys(res.features).length > 0) ? res.features : DEFAULT_FEATURES,
+          ] : ["Clean customer identity and device profile"]),
+          features: (res.features && Object.keys(res.features).length > 0) ? res.features : DYNAMIC_FEATURES,
           shap_contributions: (res.shap_contributions && Object.keys(res.shap_contributions).length > 0)
             ? res.shap_contributions
-            : (res.shap_values && Object.keys(res.shap_values).length > 0)
-            ? res.shap_values
-            : DEFAULT_SHAP
+            : DYNAMIC_SHAP
         });
 
-        // Fetch Graph Relationship Investigation
         try {
           const invRes = await fetchApi<any>(`/api/v1/graph/transaction/${txId}`);
           if (invRes) {
@@ -99,18 +155,17 @@ export default function TransactionDetailsPage() {
         }
       } catch (e) {
         console.error('Error fetching transaction risk details', e);
-        // Fallback state initialization
         setData({
           transaction_id: txId,
-          risk_score: 84.0,
-          fraud_probability: 0.84,
-          decision: 'BLOCK_REVIEW',
-          top_reasons: [
-            "Device fingerprint shared across 14 customer accounts",
+          risk_score: dynamicIndividualScore,
+          fraud_probability: dynamicIndividualScore / 100,
+          decision: isHighRiskTx ? 'BLOCK_REVIEW' : 'APPROVED',
+          top_reasons: isHighRiskTx ? [
+            `Device fingerprint shared across ${dynamicDevAccounts} customer accounts`,
             "Burst payment velocity from foreign proxy IP"
-          ],
-          features: DEFAULT_FEATURES,
-          shap_contributions: DEFAULT_SHAP
+          ] : ["Clean customer identity and device profile"],
+          features: DYNAMIC_FEATURES,
+          shap_contributions: DYNAMIC_SHAP
         });
       } finally {
         setLoading(false);
@@ -215,7 +270,7 @@ export default function TransactionDetailsPage() {
               </Badge>
             </div>
             <p className="text-xs text-muted mt-1 font-mono">
-              Amount: <strong className="text-primary">$1,450.00 USD</strong> • Timestamp: <strong>12:42:01 UTC</strong> • Status: <strong className="text-rose-500">FLAGGED</strong>
+              Amount: <strong className="text-primary">${((rawFeatures.amount ?? 1450)).toFixed(2)} USD</strong> • Timestamp: <strong>12:42:01 UTC</strong> • Status: <strong className={data.decision === 'BLOCK_REVIEW' ? 'text-rose-500' : data.decision === 'STEP_UP' ? 'text-amber-500' : 'text-emerald-500'}>{data.decision}</strong>
             </p>
           </div>
         </div>
@@ -244,11 +299,15 @@ export default function TransactionDetailsPage() {
               <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">
                 NETWORK GRAPH RISK
               </span>
-              <Badge variant="danger">ESCALATED</Badge>
+              <Badge variant={networkScore >= 70 ? 'danger' : networkScore >= 35 ? 'warning' : 'success'}>
+                {networkScore >= 70 ? 'ESCALATED' : 'NORMAL'}
+              </Badge>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-rose-500">{networkScore} <span className="text-xs text-muted font-normal">/ 100</span></span>
-              <span className="text-xs font-bold text-rose-500">HIGH (CRITICAL)</span>
+              <span className={`text-3xl font-black ${networkScore >= 70 ? 'text-rose-500' : networkScore >= 35 ? 'text-amber-500' : 'text-emerald-500'}`}>{networkScore} <span className="text-xs text-muted font-normal">/ 100</span></span>
+              <span className={`text-xs font-bold ${networkScore >= 70 ? 'text-rose-500' : networkScore >= 35 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                {networkScore >= 70 ? 'HIGH (CRITICAL)' : networkScore >= 35 ? 'MEDIUM' : 'LOW'}
+              </span>
             </div>
             <p className="text-[11px] text-muted leading-tight">
               Escalated graph risk calculated across shared devices, datacenter IPs, and promo ring edges.
@@ -272,15 +331,15 @@ export default function TransactionDetailsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
             <div className="p-3 rounded bg-surface border border-subtle space-y-1">
-              <span className="text-blue-500 font-bold block">Device dev_stealth_c91_primary</span>
-              <span className="text-muted block">14 connected customer accounts</span>
-              <span className="text-rose-500 font-semibold block">38 connected suspicious transactions</span>
+              <span className="text-blue-500 font-bold block">Device {graphData?.device_id || `dev_${txId.replace(/[^0-9]/g, '') || '5246'}`}</span>
+              <span className="text-muted block">{rawFeatures.device_account_count ?? 14} connected customer accounts</span>
+              <span className="text-rose-500 font-semibold block">{Math.round((rawFeatures.device_account_count ?? 14) * 2.7)} connected suspicious transactions</span>
             </div>
 
             <div className="p-3 rounded bg-surface border border-subtle space-y-1">
-              <span className="text-emerald-500 font-bold block">IP ip_stealth_c91_proxy (US Datacenter)</span>
-              <span className="text-muted block">14 connected customer accounts</span>
-              <span className="text-rose-500 font-semibold block">14 fraud-linked payment attempts</span>
+              <span className="text-emerald-500 font-bold block">IP {graphData?.ip_id || `ip_${txId.replace(/[^0-9]/g, '') || '7640'}`} (US Datacenter)</span>
+              <span className="text-muted block">{rawFeatures.ip_account_count ?? 18} connected customer accounts</span>
+              <span className="text-rose-500 font-semibold block">{rawFeatures.ip_account_count ?? 14} fraud-linked payment attempts</span>
             </div>
           </div>
         </div>
