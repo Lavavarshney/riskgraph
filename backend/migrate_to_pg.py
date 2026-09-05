@@ -14,7 +14,12 @@ sqlite_db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../ris
 sqlite_engine = create_engine(f"sqlite:///{sqlite_db_path}")
 SqliteSession = sessionmaker(bind=sqlite_engine)
 
-pg_url = "postgresql://riskgraph_user:riskgraph_secret@localhost:5432/riskgraph_db"
+from dotenv import load_dotenv
+load_dotenv()
+
+pg_url = os.getenv("DATABASE_URL")
+if not pg_url:
+    raise ValueError("DATABASE_URL environment variable is not set")
 pg_engine = create_engine(pg_url)
 PgSession = sessionmaker(bind=pg_engine)
 

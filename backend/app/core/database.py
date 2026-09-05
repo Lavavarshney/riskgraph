@@ -7,29 +7,23 @@ from app.core.config import settings
 logger = logging.getLogger("riskgraph.database")
 
 def create_db_engine():
-    # Attempt connecting to PostgreSQL
     postgres_url = settings.DATABASE_URL
+    logger.info("Connecting to database...")
+    test_engine = create_engine(
+        postgres_url,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+        connect_args={"connect_timeout": 3} if "postgresql" in postgres_url else {}
+    )
     try:
-        test_engine = create_engine(
-            postgres_url,
-            pool_pre_ping=True,
-            pool_size=10,
-            max_overflow=20,
-            connect_args={"connect_timeout": 3} if "postgresql" in postgres_url else {}
-        )
         with test_engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        logger.info("Successfully connected to PostgreSQL database.")
+        logger.info("Successfully connected to database.")
         return test_engine
     except Exception as e:
-        logger.warning(f"PostgreSQL not reachable ({e}). Falling back to local SQLite database.")
-        sqlite_db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../riskgraph.db"))
-        sqlite_url = f"sqlite:///{sqlite_db_path}"
-        return create_engine(
-            sqlite_url,
-            connect_args={"check_same_thread": False},
-            echo=False
-        )
+        logger.error(f"Failed to connect to database: {e}")
+        raise
 
 engine = create_db_engine()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

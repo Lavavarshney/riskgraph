@@ -4,16 +4,12 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from app.core.database import SessionLocal
 
 from app.models.domain import Transaction
 from app.modules.risk.features import extract_features_from_dict, format_feature_dataframe
 from app.modules.risk.trainer import RiskScoringEngine
 
-sqlite_db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../riskgraph.db"))
-engine = create_engine(f"sqlite:///{sqlite_db_path}")
-SessionLocal = sessionmaker(bind=engine)
 db = SessionLocal()
 
 tx = db.query(Transaction).order_by(Transaction.timestamp.desc()).first()

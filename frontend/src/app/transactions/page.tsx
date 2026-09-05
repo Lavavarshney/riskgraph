@@ -7,6 +7,8 @@ import { RiskCard, RiskCardData } from '@/components/ui/RiskCard';
 import { fetchApi } from '@/lib/api';
 import { CreditCard, ArrowRight, ShieldCheck, Zap, RefreshCw, Layers } from 'lucide-react';
 
+import { useWebSocket } from '@/lib/websocket';
+
 interface TxItem {
   id: string;
   time: string;
@@ -25,118 +27,38 @@ interface TxItem {
   status: string;
 }
 
-const sampleTransactions: TxItem[] = [
-  {
-    id: 'tx_stealth_01',
-    time: '12:42:01',
-    merchant_id: 'merch_gaming_vault',
-    customer_id: 'cust_stealth_01',
-    device_id: 'dev_stealth_c91_primary',
-    ip_id: 'ip_stealth_c91_proxy',
-    payment_method_id: 'pm_4881',
-    amount: 49.99,
-    country: 'USA',
-    failed_attempts_recent: 4,
-    account_age_minutes: 45,
-    fraud_type: 'COORDINATED_FRAUD_RING',
-    risk_score: 84,
-    decision: 'BLOCK_REVIEW',
-    status: 'FLAGGED',
-  },
-  {
-    id: 'tx_891024',
-    time: '12:41:45',
-    merchant_id: 'merch_tech_direct',
-    customer_id: 'cust_901',
-    device_id: 'dev_44',
-    ip_id: 'ip_102',
-    payment_method_id: 'pm_1029',
-    amount: 42.50,
-    country: 'USA',
-    failed_attempts_recent: 0,
-    account_age_minutes: 25000,
-    fraud_type: 'NORMAL',
-    risk_score: 18,
-    decision: 'ALLOW',
-    status: 'APPROVED',
-  },
-  {
-    id: 'tx_891025',
-    time: '12:40:12',
-    merchant_id: 'merch_digital_goods',
-    customer_id: 'cust_6420',
-    device_id: 'dev_4890',
-    ip_id: 'ip_3901',
-    payment_method_id: 'pm_9012',
-    amount: 720.00,
-    country: 'NGA',
-    failed_attempts_recent: 3,
-    account_age_minutes: 45000,
-    fraud_type: 'ACCOUNT_TAKEOVER',
-    risk_score: 68,
-    decision: 'STEP_UP',
-    status: 'CHALLENGED',
-  },
-  {
-    id: 'tx_891026',
-    time: '12:38:50',
-    merchant_id: 'merch_global_retail',
-    customer_id: 'cust_882',
-    device_id: 'dev_12',
-    ip_id: 'ip_99',
-    payment_method_id: 'pm_3341',
-    amount: 1250.00,
-    country: 'USA',
-    failed_attempts_recent: 1,
-    account_age_minutes: 120,
-    fraud_type: 'CARD_TESTING',
-    risk_score: 76,
-    decision: 'BLOCK_REVIEW',
-    status: 'FLAGGED',
-  },
-];
-
 export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState<TxItem[]>(sampleTransactions);
-  const [selectedTx, setSelectedTx] = useState<TxItem>(sampleTransactions[0]);
+  const { lastMessage } = useWebSocket();
+  const [transactions, setTransactions] = useState<TxItem[]>([]);
+  const [selectedTx, setSelectedTx] = useState<TxItem | null>(null);
   const [riskCardData, setRiskCardData] = useState<RiskCardData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Live Simulation Generator for the hackathon demo
   useEffect(() => {
-    const merchants = ['merch_gaming_vault', 'merch_tech_direct', 'merch_digital_goods', 'merch_global_retail'];
-    const countries = ['USA', 'GBR', 'CAN', 'IND', 'SGP', 'NGA'];
-    
-    const interval = setInterval(() => {
-      const isFraudTick = Math.random() < 0.25; // 25% chance of anomalous transaction
-      const riskScore = isFraudTick ? Math.floor(Math.random() * 30 + 70) : Math.floor(Math.random() * 40 + 10);
-      const decision = riskScore >= 80 ? 'BLOCK_REVIEW' : riskScore >= 60 ? 'STEP_UP' : 'ALLOW';
-      const status = riskScore >= 80 ? 'FLAGGED' : riskScore >= 60 ? 'CHALLENGED' : 'APPROVED';
-      const fraudType = isFraudTick ? (Math.random() > 0.5 ? 'CARD_TESTING' : 'SYBIL_RING') : 'NORMAL';
+    if (lastMessage && lastMessage.event === 'payment_event') {
+      const payment = lastMessage.data;
       
       const newTx: TxItem = {
-        id: `tx_${Math.floor(Math.random() * 899999 + 100000)}`,
-        time: new Date().toLocaleTimeString('en-US', { hour12: false }),
-        merchant_id: merchants[Math.floor(Math.random() * merchants.length)],
-        customer_id: `cust_${Math.floor(Math.random() * 8999 + 1000)}`,
-        device_id: `dev_${Math.floor(Math.random() * 8999 + 1000)}`,
-        ip_id: `ip_${Math.floor(Math.random() * 8999 + 1000)}`,
-        payment_method_id: `pm_${Math.floor(Math.random() * 8999 + 1000)}`,
-        amount: parseFloat((Math.random() * 500 + 10).toFixed(2)),
-        country: countries[Math.floor(Math.random() * countries.length)],
-        failed_attempts_recent: isFraudTick ? Math.floor(Math.random() * 5) : 0,
-        account_age_minutes: isFraudTick ? Math.floor(Math.random() * 60) : Math.floor(Math.random() * 50000 + 1000),
-        fraud_type: fraudType,
-        risk_score: riskScore,
-        decision: decision,
-        status: status,
+        id: payment.id,
+        time: payment.timestamp || new Date().toLocaleTimeString('en-US', { hour12: false }),
+        merchant_id: payment.merchant_id,
+        customer_id: payment.customer_id,
+        device_id: payment.device_id,
+        ip_id: payment.ip_id,
+        payment_method_id: payment.payment_method_id,
+        amount: payment.amount,
+        country: payment.country,
+        failed_attempts_recent: payment.is_fraud ? Math.floor(Math.random() * 5) : 0,
+        account_age_minutes: payment.is_fraud ? Math.floor(Math.random() * 60) : Math.floor(Math.random() * 50000 + 1000),
+        fraud_type: payment.fraud_type || (payment.is_fraud ? 'SYBIL_RING' : 'NORMAL'),
+        risk_score: payment.is_fraud ? Math.floor(Math.random() * 30 + 70) : Math.floor(Math.random() * 40 + 10),
+        decision: payment.is_fraud ? 'BLOCK_REVIEW' : 'ALLOW',
+        status: payment.status || (payment.is_fraud ? 'FLAGGED' : 'APPROVED'),
       };
 
-      setTransactions((prev) => [newTx, ...prev].slice(0, 50)); // Keep last 50
-    }, 1500); // Add a new transaction every 1.5 seconds
-
-    return () => clearInterval(interval);
-  }, []);
+      setTransactions((prev) => [newTx, ...prev].slice(0, 50));
+    }
+  }, [lastMessage]);
 
   const scoreTransaction = async (tx: TxItem) => {
     setSelectedTx(tx);
@@ -192,42 +114,50 @@ export default function TransactionsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-subtle">
-                {transactions.map((tx) => {
-                  const isSelected = selectedTx.id === tx.id;
-                  const isHigh = tx.risk_score >= 70;
-                  const isMed = tx.risk_score >= 35 && tx.risk_score < 70;
-                  return (
-                    <tr
-                      key={tx.id}
-                      onClick={() => scoreTransaction(tx)}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected ? 'bg-blue-500/10 text-primary border-l-2 border-blue-500' : 'hover:bg-surface-secondary'
-                      }`}
-                    >
-                      <td className="px-4 py-2.5 text-muted">{tx.time}</td>
-                      <td className="px-4 py-2.5 font-bold text-blue-500">{tx.id}</td>
-                      <td className="px-4 py-2.5 text-primary">{tx.merchant_id}</td>
-                      <td className="px-4 py-2.5 text-muted">{tx.customer_id}</td>
-                      <td className="px-4 py-2.5 font-bold text-primary">${((tx?.amount ?? 0)).toFixed(2)}</td>
-                      <td className="px-4 py-2.5">
-                        <div className="flex items-center gap-1.5 font-bold">
-                          <span className={isHigh ? 'text-rose-500' : isMed ? 'text-amber-500' : 'text-emerald-500'}>
-                            {tx.risk_score}
-                          </span>
-                          <span className="text-[10px] text-muted uppercase">
-                            ({isHigh ? 'HIGH' : isMed ? 'MED' : 'LOW'})
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <Badge variant={tx.decision === 'BLOCK_REVIEW' ? 'danger' : tx.decision === 'STEP_UP' ? 'warning' : 'success'}>
-                          {tx.decision}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted">{tx.status}</td>
-                    </tr>
-                  );
-                })}
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-8 text-center text-muted italic font-sans">
+                      No transactions received yet. Start the simulator from the Dashboard.
+                    </td>
+                  </tr>
+                ) : (
+                  transactions.map((tx) => {
+                    const isSelected = selectedTx?.id === tx.id;
+                    const isHigh = tx.risk_score >= 70;
+                    const isMed = tx.risk_score >= 35 && tx.risk_score < 70;
+                    return (
+                      <tr
+                        key={tx.id}
+                        onClick={() => scoreTransaction(tx)}
+                        className={`cursor-pointer transition-colors ${
+                          isSelected ? 'bg-blue-500/10 text-primary border-l-2 border-blue-500' : 'hover:bg-surface-secondary'
+                        }`}
+                      >
+                        <td className="px-4 py-2.5 text-muted">{tx.time}</td>
+                        <td className="px-4 py-2.5 font-bold text-blue-500">{tx.id}</td>
+                        <td className="px-4 py-2.5 text-primary">{tx.merchant_id}</td>
+                        <td className="px-4 py-2.5 text-muted">{tx.customer_id}</td>
+                        <td className="px-4 py-2.5 font-bold text-primary">${((tx?.amount ?? 0)).toFixed(2)}</td>
+                        <td className="px-4 py-2.5">
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <span className={isHigh ? 'text-rose-500' : isMed ? 'text-amber-500' : 'text-emerald-500'}>
+                              {tx.risk_score}
+                            </span>
+                            <span className="text-[10px] text-muted uppercase">
+                              ({isHigh ? 'HIGH' : isMed ? 'MED' : 'LOW'})
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <Badge variant={tx.decision === 'BLOCK_REVIEW' ? 'danger' : tx.decision === 'STEP_UP' ? 'warning' : 'success'}>
+                            {tx.decision}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-2.5 text-muted">{tx.status}</td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -238,8 +168,9 @@ export default function TransactionsPage() {
           <div className="flex items-center justify-between">
             <span className="text-xs font-mono font-bold text-muted uppercase">RISK ENGINE EVALUATOR</span>
             <button
-              onClick={() => scoreTransaction(selectedTx)}
-              className="p-1 rounded bg-surface-secondary border border-subtle text-muted hover:text-primary transition-colors"
+              onClick={() => selectedTx && scoreTransaction(selectedTx)}
+              disabled={!selectedTx}
+              className="p-1 rounded bg-surface-secondary border border-subtle text-muted hover:text-primary transition-colors disabled:opacity-50"
               title="Re-run Risk Scoring"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />

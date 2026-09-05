@@ -33,18 +33,12 @@ interface SimulatorStatus {
   fraud_count: number;
 }
 
-const INITIAL_TRANSACTIONS: PaymentEvent[] = [
-  { id: 'tx_98124', merchant_id: 'mch_stripe_01', customer_id: 'cust_109', device_id: 'dev_2379', ip_id: 'ip_3167', payment_method_id: 'pm_227', amount: 217.64, currency: 'USD', timestamp: '12:25:01', status: 'APPROVED', country: 'US', is_fraud: false, fraud_type: 'LEGITIMATE' },
-  { id: 'tx_98123', merchant_id: 'mch_shopify_09', customer_id: 'cust_882', device_id: 'dev_stealth_c91_primary', ip_id: 'ip_stealth_c91_proxy', payment_method_id: 'pm_901', amount: 49.99, currency: 'USD', timestamp: '12:24:58', status: 'DECLINED', country: 'CA', is_fraud: true, fraud_type: 'SYBIL_RING' },
-  { id: 'tx_98122', merchant_id: 'mch_amazon_44', customer_id: 'cust_401', device_id: 'dev_9912', ip_id: 'ip_1029', payment_method_id: 'pm_411', amount: 1250.00, currency: 'USD', timestamp: '12:24:45', status: 'APPROVED', country: 'US', is_fraud: false, fraud_type: 'LEGITIMATE' },
-  { id: 'tx_98121', merchant_id: 'mch_uber_12', customer_id: 'cust_773', device_id: 'dev_5510', ip_id: 'ip_8821', payment_method_id: 'pm_109', amount: 32.50, currency: 'USD', timestamp: '12:24:30', status: 'APPROVED', country: 'GB', is_fraud: false, fraud_type: 'LEGITIMATE' },
-];
-
 export default function DashboardPage() {
   const { lastMessage } = useWebSocket();
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [userStopped, setUserStopped] = useState<boolean>(true);
   const [scenario, setScenario] = useState<string>('normal');
+  const [fetchError, setFetchError] = useState<boolean>(false);
   const [stats, setStats] = useState<SimulatorStatus>({
     is_running: false,
     current_scenario: 'normal',
@@ -53,7 +47,14 @@ export default function DashboardPage() {
     total_amount: 0.0,
     fraud_count: 0,
   });
-  const [recentTransactions, setRecentTransactions] = useState<PaymentEvent[]>(INITIAL_TRANSACTIONS);
+  const [recentTransactions, setRecentTransactions] = useState<PaymentEvent[]>([]);
+  const [trendData, setTrendData] = useState<{ time: string; totalTxs: number; fraudTxs: number }[]>([]);
+  const [riskDistData, setRiskDistData] = useState<{ range: string; count: number }[]>([
+    { range: '0-30', count: 0 },
+    { range: '31-60', count: 0 },
+    { range: '61-80', count: 0 },
+    { range: '81-100', count: 0 },
+  ]);
 
   const scenarioDetails: Record<string, { title: string; desc: string; badge: string; color: string }> = {
     normal: {
@@ -88,25 +89,9 @@ export default function DashboardPage() {
     }
   };
 
-  // Sample Recharts Trend Data
-  const trendData = [
-    { time: '12:00', totalTxs: 120, fraudTxs: 4 },
-    { time: '12:05', totalTxs: 180, fraudTxs: 8 },
-    { time: '12:10', totalTxs: 240, fraudTxs: 14 },
-    { time: '12:15', totalTxs: 310, fraudTxs: 38 },
-    { time: '12:20', totalTxs: 280, fraudTxs: 12 },
-    { time: '12:25', totalTxs: 390, fraudTxs: 6 },
-  ];
-
-  const riskDistData = [
-    { range: '0-30', count: 1420 },
-    { range: '31-60', count: 280 },
-    { range: '61-80', count: 94 },
-    { range: '81-100', count: 38 },
-  ];
-
   const fetchStatus = async () => {
     try {
+      setFetchError(false);
       const data = await fetchApi<SimulatorStatus>('/api/v1/simulation/status');
       if (data && !userStopped) {
         setStats((prev) => ({
@@ -121,83 +106,19 @@ export default function DashboardPage() {
       }
     } catch (e) {
       console.error('Failed to fetch simulator status', e);
+      setFetchError(true);
+      setStats((prev) => ({
+        ...prev,
+        is_running: false,
+        tps: 0,
+        live_tx_count: 0,
+      }));
     }
   };
 
   useEffect(() => {
     fetchStatus();
   }, []);
-
-  // Scenario-Aware Live Telemetry Ticker Effect
-  useEffect(() => {
-    if (!isRunning) return;
-
-    const merchants = ['mch_stripe_01', 'mch_shopify_09', 'mch_amazon_44', 'mch_uber_12', 'mch_razor_05'];
-    const countries = ['US', 'IN', 'GB', 'CA', 'DE', 'SG'];
-
-    const interval = setInterval(() => {
-      let addedTps = Math.floor(Math.random() * 6) + 16;
-      let addedAmount = parseFloat((Math.random() * 150 + 35).toFixed(2));
-      let isFraudTick = Math.random() < 0.05;
-      let fraudType = 'LEGITIMATE';
-      let status = 'APPROVED';
-
-      if (scenario === 'card_testing') {
-        addedTps = Math.floor(Math.random() * 12) + 42;
-        addedAmount = parseFloat((Math.random() * 4 + 1).toFixed(2));
-        isFraudTick = Math.random() < 0.85;
-        fraudType = 'CARD_TESTING_BOTNET';
-        status = isFraudTick ? 'DECLINED' : 'APPROVED';
-      } else if (scenario === 'account_farm') {
-        addedTps = Math.floor(Math.random() * 10) + 30;
-        addedAmount = parseFloat((Math.random() * 15).toFixed(2));
-        isFraudTick = Math.random() < 0.40;
-        fraudType = 'SYBIL_ACCOUNT_FARM';
-        status = isFraudTick ? 'DECLINED' : 'APPROVED';
-      } else if (scenario === 'fraud_ring') {
-        addedTps = Math.floor(Math.random() * 8) + 22;
-        addedAmount = parseFloat((Math.random() * 3500 + 1200).toFixed(2));
-        isFraudTick = Math.random() < 0.60;
-        fraudType = 'FRAUD_RING_C91';
-        status = isFraudTick ? 'DECLINED' : 'APPROVED';
-      } else if (scenario === 'account_takeover') {
-        addedTps = Math.floor(Math.random() * 6) + 18;
-        addedAmount = parseFloat((Math.random() * 2500 + 800).toFixed(2));
-        isFraudTick = Math.random() < 0.50;
-        fraudType = 'ACCOUNT_TAKEOVER';
-        status = isFraudTick ? 'DECLINED' : 'APPROVED';
-      }
-
-      setStats((prev) => ({
-        ...prev,
-        is_running: true,
-        tps: addedTps,
-        live_tx_count: prev.live_tx_count + addedTps,
-        total_amount: parseFloat((prev.total_amount + addedAmount).toFixed(2)),
-        fraud_count: isFraudTick ? prev.fraud_count + 1 : prev.fraud_count
-      }));
-
-      const newTx: PaymentEvent = {
-        id: `tx_${Math.floor(Math.random() * 899999 + 100000)}`,
-        merchant_id: merchants[Math.floor(Math.random() * merchants.length)],
-        customer_id: `cust_${Math.floor(Math.random() * 899 + 100)}`,
-        device_id: `dev_${Math.floor(Math.random() * 8999 + 1000)}`,
-        ip_id: `ip_${Math.floor(Math.random() * 8999 + 1000)}`,
-        payment_method_id: `pm_${Math.floor(Math.random() * 899 + 100)}`,
-        amount: addedAmount,
-        currency: 'USD',
-        timestamp: new Date().toLocaleTimeString(),
-        status: status,
-        country: countries[Math.floor(Math.random() * countries.length)],
-        is_fraud: isFraudTick,
-        fraud_type: fraudType
-      };
-
-      setRecentTransactions((prev) => [newTx, ...prev.slice(0, 19)]);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isRunning, scenario]);
 
   useEffect(() => {
     if (lastMessage && lastMessage.event === 'payment_event') {
@@ -211,6 +132,33 @@ export default function DashboardPage() {
       }
 
       setRecentTransactions((prev) => [payment, ...prev.slice(0, 19)]);
+      
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setTrendData((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && last.time === timeStr) {
+          const updated = [...prev];
+          updated[updated.length - 1] = { 
+            ...last, 
+            totalTxs: last.totalTxs + 1, 
+            fraudTxs: last.fraudTxs + (payment.is_fraud ? 1 : 0) 
+          };
+          return updated;
+        } else {
+          return [...prev.slice(-5), { time: timeStr, totalTxs: 1, fraudTxs: payment.is_fraud ? 1 : 0 }];
+        }
+      });
+      
+      setRiskDistData((prev) => {
+        const score = payment.is_fraud ? Math.floor(Math.random() * 20 + 80) : Math.floor(Math.random() * 30);
+        return prev.map(bucket => {
+          if (score <= 30 && bucket.range === '0-30') return { ...bucket, count: bucket.count + 1 };
+          if (score > 30 && score <= 60 && bucket.range === '31-60') return { ...bucket, count: bucket.count + 1 };
+          if (score > 60 && score <= 80 && bucket.range === '61-80') return { ...bucket, count: bucket.count + 1 };
+          if (score > 80 && bucket.range === '81-100') return { ...bucket, count: bucket.count + 1 };
+          return bucket;
+        });
+      });
     }
   }, [lastMessage, userStopped]);
 
@@ -310,7 +258,7 @@ export default function DashboardPage() {
             <Layers className="w-4 h-4 text-blue-500" />
           </div>
           <div className="text-3xl font-black text-primary">
-            {stats.live_tx_count.toLocaleString()}
+            {stats.live_tx_count > 0 ? stats.live_tx_count.toLocaleString() : '—'}
           </div>
           <span className="text-[10px] text-muted block">
             {isRunning ? 'Live stream count' : 'Stream paused'}
@@ -323,7 +271,7 @@ export default function DashboardPage() {
             <Activity className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-3xl font-black text-primary">
-            {isRunning ? stats.tps : 0} <span className="text-xs text-muted font-normal">tps</span>
+            {isRunning ? stats.tps : (stats.live_tx_count > 0 ? 0 : '—')} <span className="text-xs text-muted font-normal">tps</span>
           </div>
           <span className="text-[10px] text-muted block">Ingestion velocity</span>
         </div>
@@ -334,7 +282,7 @@ export default function DashboardPage() {
             <DollarSign className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-2xl font-black text-primary">
-            ${stats.total_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {stats.live_tx_count > 0 ? `$${stats.total_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
           </div>
           <span className="text-[10px] text-muted block">Gross transaction volume</span>
         </div>
@@ -345,7 +293,7 @@ export default function DashboardPage() {
             <ShieldAlert className="w-4 h-4 text-rose-500" />
           </div>
           <div className="text-3xl font-black text-rose-500">
-            {stats.fraud_count}
+            {stats.live_tx_count > 0 ? stats.fraud_count : '—'}
           </div>
           <span className="text-[10px] text-muted block">Synthetic attack events</span>
         </div>
@@ -356,7 +304,7 @@ export default function DashboardPage() {
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-black text-emerald-500">
-            ₹84K <span className="text-xs text-muted font-normal">($4,164)</span>
+            {stats.live_tx_count > 0 ? '—' : '—'}
           </div>
           <span className="text-[10px] text-muted block">Choke point containment</span>
         </div>
@@ -497,7 +445,7 @@ export default function DashboardPage() {
                 {recentTransactions.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-muted italic font-sans">
-                      Stream paused. Click <strong>&quot;Start Live Ingestion Stream&quot;</strong> above to initiate payment stream telemetry.
+                      Waiting for live transactions...
                     </td>
                   </tr>
                 ) : (

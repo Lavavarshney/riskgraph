@@ -24,18 +24,13 @@ interface ChatMessage {
 }
 
 export default function InvestigationsPage() {
-  const [txId, setTxId] = useState('tx_stealth_01');
+  const [txId, setTxId] = useState('');
   const [report, setReport] = useState<InvestigationReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [inputQuestion, setInputQuestion] = useState('');
   const [asking, setAsking] = useState(false);
-
-  const sampleTransactions = [
-    { id: 'tx_stealth_01', desc: 'Sybil Ring Transaction #1 ($49.99)' },
-    { id: 'tx_stealth_02', desc: 'Sybil Ring Transaction #2 ($49.99)' },
-    { id: 'tx_ip_botnet_01', desc: 'Datacenter Proxy Botnet Payment ($199.00)' },
-  ];
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -50,9 +45,13 @@ export default function InvestigationsPage() {
 
   const handleInvestigate = async (idToInvestigate?: string) => {
     const targetId = idToInvestigate || txId;
+    if (!targetId.trim()) return;
+    
     setLoading(true);
     setReport(null);
     setChatMessages([]);
+    setError('');
+    
     try {
       const data = await fetchApi<InvestigationReport>(`/investigations/${targetId}`, {
         method: 'POST'
@@ -66,6 +65,7 @@ export default function InvestigationsPage() {
       ]);
     } catch (e) {
       console.error('Failed to run investigation:', e);
+      setError('Investigation failed. Please check the transaction ID.');
     } finally {
       setLoading(false);
     }
@@ -93,6 +93,11 @@ export default function InvestigationsPage() {
       setChatMessages(prev => [...prev, agentMsg]);
     } catch (e) {
       console.error('Failed to ask question:', e);
+      const agentMsg: ChatMessage = {
+        sender: 'agent',
+        text: 'Failed to process question. Please try again.'
+      };
+      setChatMessages(prev => [...prev, agentMsg]);
     } finally {
       setAsking(false);
     }
@@ -119,14 +124,14 @@ export default function InvestigationsPage() {
               type="text"
               value={txId}
               onChange={(e) => setTxId(e.target.value)}
-              placeholder="Enter Tx ID (e.g. tx_98124, tx_stealth_01)..."
+              placeholder="Enter Tx ID..."
               className="bg-surface border border-subtle text-primary text-xs rounded-lg px-3 py-1.5 font-mono w-64 focus:outline-none focus:border-blue-500"
             />
           </div>
           <button
             onClick={() => handleInvestigate()}
-            disabled={loading}
-            className="px-3.5 py-1.5 bg-primary hover:bg-blue-600 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+            disabled={loading || !txId.trim()}
+            className="px-3.5 py-1.5 bg-primary hover:bg-blue-600 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
           >
             <Brain className="w-3.5 h-3.5" />
             {loading ? 'Analyzing Tools...' : 'INVESTIGATE PAYMENT'}
@@ -137,11 +142,23 @@ export default function InvestigationsPage() {
       {loading && (
         <div className="p-12 text-center text-muted font-mono bg-card border border-subtle rounded-xl">
           <Activity className="w-6 h-6 animate-spin mx-auto text-blue-500 mb-2" />
-          Executing 10 grounded inspection tools (`get_transaction`, `get_related_entities`, `get_risk_breakdown`)...
+          Executing 10 grounded inspection tools...
         </div>
       )}
 
-      {report && !loading && (
+      {error && !loading && (
+        <div className="p-12 text-center text-rose-500 font-mono bg-card border border-subtle rounded-xl">
+          {error}
+        </div>
+      )}
+
+      {!report && !loading && !error && (
+        <div className="p-12 text-center text-muted font-mono bg-card border border-subtle rounded-xl">
+          Enter a transaction ID and click Investigate
+        </div>
+      )}
+
+      {report && !loading && !error && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left / Center: Investigation Workspace (7 cols) */}
           <div className="lg:col-span-7 space-y-4">
@@ -152,8 +169,8 @@ export default function InvestigationsPage() {
                   <FileText className="w-4 h-4 text-blue-500" />
                   <h3 className="font-bold text-primary text-base">INVESTIGATION #INV-{report.transaction_id.toUpperCase()}</h3>
                 </div>
-                <Badge variant={report.policy_status.is_action_auto_approved ? 'success' : 'warning'}>
-                  STATUS: {report.policy_status.is_action_auto_approved ? 'RESOLVED / CONTAINED' : 'OPEN (MANUAL APPROVAL)'}
+                <Badge variant={report.policy_status?.is_action_auto_approved ? 'success' : 'warning'}>
+                  STATUS: {report.policy_status?.is_action_auto_approved ? 'RESOLVED / CONTAINED' : 'OPEN (MANUAL APPROVAL)'}
                 </Badge>
               </div>
 
@@ -173,14 +190,14 @@ export default function InvestigationsPage() {
                 <div className="p-3 bg-surface-secondary rounded-lg border border-subtle space-y-1">
                   <span className="text-amber-500 font-bold text-xs block">ASSESSMENT</span>
                   <p className="text-xs text-primary font-sans leading-relaxed">
-                    Coordinated activity detected. Combined network risk escalated from individual baseline ({report.risk_breakdown.individual_tx_risk}) to {report.risk_breakdown.final_combined_risk} due to multi-hop device & proxy IP reuse.
+                    Coordinated activity detected. Combined network risk escalated from individual baseline ({report.risk_breakdown?.individual_tx_risk ?? '—'}) to {report.risk_breakdown?.final_combined_risk ?? '—'} due to multi-hop device & proxy IP reuse.
                   </p>
                 </div>
 
                 <div className="p-3 bg-surface-secondary rounded-lg border border-subtle space-y-1">
                   <span className="text-rose-500 font-bold text-xs block">RECOMMENDATION</span>
                   <p className="text-xs text-primary font-sans leading-relaxed">
-                    Execute <strong className="font-mono text-rose-500">{report.recommended_action.action || 'QUARANTINE_DEVICE'}</strong> on target <strong className="font-mono text-blue-500">{report.recommended_action.target_id || 'dev_stealth_c91_primary'}</strong> to stop {report.recommended_action.coverage_percentage || 86.8}% of attack volume.
+                    Execute <strong className="font-mono text-rose-500">{report.recommended_action?.action ?? '—'}</strong> on target <strong className="font-mono text-blue-500">{report.recommended_action?.target_id ?? '—'}</strong> to stop {report.recommended_action?.coverage_percentage ?? '—'}% of attack volume.
                   </p>
                 </div>
               </div>
@@ -188,10 +205,10 @@ export default function InvestigationsPage() {
               {/* Cited Empirical Evidence */}
               <div className="space-y-2 pt-1">
                 <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">
-                  CITED BACKEND EVIDENCE ({report.evidence.length})
+                  CITED BACKEND EVIDENCE ({report.evidence?.length ?? 0})
                 </span>
                 <div className="space-y-1.5">
-                  {report.evidence.map((item, idx) => (
+                  {(report.evidence || []).map((item, idx) => (
                     <div key={idx} className="p-2 bg-surface-secondary rounded border border-subtle text-xs text-primary flex items-start gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
                       <span>{item}</span>

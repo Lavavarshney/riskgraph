@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { fetchApi } from '@/lib/api';
 import { ReactFlowGraphCanvas, GraphNodeData, GraphEdgeData, NetworkSignalsData } from '@/components/graph/ReactFlowGraphCanvas';
-import { Network, Search, Activity, RefreshCw } from 'lucide-react';
+import { Network, Search, Activity, RefreshCw, AlertTriangle } from 'lucide-react';
 
 export default function NetworkPage() {
   const [searchEntity, setSearchEntity] = useState<string>('tx_1');
@@ -15,10 +15,12 @@ export default function NetworkPage() {
   const [reasons, setReasons] = useState<string[]>([]);
   const [networkSignals, setNetworkSignals] = useState<NetworkSignalsData | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
   async function loadGraph(entityId: string) {
     const cleanId = entityId.trim() || 'tx_1';
     setLoading(true);
+    setError('');
     setActiveEntity(cleanId);
     try {
       const endpoint = `/api/v1/graph/subgraph/${cleanId}?depth=2`;
@@ -39,6 +41,9 @@ export default function NetworkPage() {
       setNetworkSignals(graphObj.network_signals);
     } catch (e) {
       console.error('Error fetching graph network data:', e);
+      setError('Network data unavailable. Ensure the backend is running.');
+      setNodes([]);
+      setEdges([]);
     } finally {
       setLoading(false);
     }
@@ -116,6 +121,11 @@ export default function NetworkPage() {
         <div className="bg-card border border-subtle rounded-xl p-16 text-center font-mono text-muted flex flex-col items-center justify-center space-y-3 shadow-sm">
           <Activity className="w-8 h-8 text-blue-500 animate-spin" />
           <span>Traversing relationship graph topology for <strong className="text-primary">{activeEntity}</strong>...</span>
+        </div>
+      ) : error ? (
+        <div className="bg-card border border-subtle rounded-xl p-16 text-center font-mono text-rose-500 flex flex-col items-center justify-center space-y-3 shadow-sm">
+          <AlertTriangle className="w-8 h-8 text-rose-500" />
+          <span>{error}</span>
         </div>
       ) : (
         <ReactFlowGraphCanvas

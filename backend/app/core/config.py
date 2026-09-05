@@ -1,22 +1,18 @@
 import os
 from typing import List, Union
-from pydantic import AnyHttpUrl, validator
+from pydantic import AnyHttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
+
+# Ensure .env is explicitly loaded so os.getenv can see it if it exists
+load_dotenv()
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "RISKGRAPH Engine"
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/api/v1"
     
-    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
-    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "riskgraph_user")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "riskgraph_secret")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "riskgraph_db")
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL",
-        f"postgresql://{os.getenv('POSTGRES_USER', 'riskgraph_user')}:{os.getenv('POSTGRES_PASSWORD', 'riskgraph_secret')}@{os.getenv('POSTGRES_SERVER', 'localhost')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB', 'riskgraph_db')}"
-    )
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
 
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
@@ -26,3 +22,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 settings = Settings()
+
+if not settings.DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set")

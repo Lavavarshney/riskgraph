@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Shield, ShieldAlert, CheckCircle, Save, Sliders, ShieldCheck } from 'lucide-react';
+import { Settings, Shield, ShieldAlert, CheckCircle, Save, Sliders, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { fetchApi } from '@/lib/api';
 
@@ -18,42 +18,36 @@ interface MerchantPolicy {
   maximum_transaction_amount_for_auto_block: number;
 }
 
-const DEFAULT_POLICY: MerchantPolicy = {
-  id: 'pol_merchant_global_v1',
-  name: 'Global Default Containment Policy',
-  individual_risk_threshold: 70.0,
-  network_risk_threshold: 70.0,
-  auto_block_enabled: true,
-  auto_challenge_enabled: true,
-  device_quarantine_threshold: 5,
-  ip_quarantine_threshold: 8,
-  minimum_account_age_for_auto_block: 1440,
-  maximum_transaction_amount_for_auto_block: 2500.0,
-};
-
 export default function PoliciesPage() {
   const [policy, setPolicy] = useState<MerchantPolicy | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState('');
+  const [error, setError] = useState('');
+  const [empty, setEmpty] = useState(false);
 
   useEffect(() => {
     fetchPolicy();
   }, []);
 
   const fetchPolicy = async () => {
+    setLoading(true);
+    setError('');
+    setEmpty(false);
     try {
       const data = await fetchApi<any>('/policies');
       if (Array.isArray(data) && data.length > 0) {
-        setPolicy({ ...DEFAULT_POLICY, ...data[0] });
-      } else if (data && typeof data === 'object' && !Array.isArray(data)) {
-        setPolicy({ ...DEFAULT_POLICY, ...data });
+        setPolicy(data[0]);
+      } else if (data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0) {
+        setPolicy(data);
       } else {
-        setPolicy(DEFAULT_POLICY);
+        setPolicy(null);
+        setEmpty(true);
       }
     } catch (e) {
       console.error('Failed to fetch policy:', e);
-      setPolicy(DEFAULT_POLICY);
+      setError('Unable to load policies');
+      setPolicy(null);
     } finally {
       setLoading(false);
     }
@@ -80,11 +74,28 @@ export default function PoliciesPage() {
     setPolicy(prev => prev ? { ...prev, [field]: value } : null);
   };
 
-  if (loading || !policy) {
+  if (loading) {
     return (
       <div className="p-12 text-center text-muted font-mono bg-card border border-subtle rounded-xl">
         <Settings className="w-6 h-6 animate-spin mx-auto text-blue-500 mb-2" />
         Loading merchant risk policies...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-12 text-center text-rose-500 font-mono bg-card border border-subtle rounded-xl flex flex-col items-center gap-2 shadow-sm">
+        <AlertTriangle className="w-8 h-8 text-rose-500" />
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (empty || !policy) {
+    return (
+      <div className="p-12 text-center text-muted font-mono bg-card border border-subtle rounded-xl">
+        No policies configured yet
       </div>
     );
   }

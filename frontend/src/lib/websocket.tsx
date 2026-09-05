@@ -35,7 +35,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const wsUrl = getWsUrl();
     if (!wsUrl) {
-      setIsConnected(true);
+      setIsConnected(false);
       return;
     }
 
