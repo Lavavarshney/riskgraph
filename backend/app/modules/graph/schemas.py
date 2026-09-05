@@ -80,6 +80,7 @@ class TransactionInvestigation(BaseModel):
     risk_delta: float  # network_risk_score - individual_risk_score
     risk_summary: str
     traversal_breakdown: str
+    description: Optional[str] = None
 
     # Subgraph representation
     graph_data: GraphData

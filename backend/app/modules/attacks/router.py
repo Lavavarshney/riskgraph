@@ -25,84 +25,56 @@ def get_active_attacks(
     """
     clusters: List[AttackCluster] = []
 
-    # 1. Evaluate primary stealth ring if present
-    try:
-        stealth_cluster = NetworkRiskEngine.evaluate_attack_cluster(
-            db=db,
-            cluster_id="cls_c91_stealth_ring",
-            cluster_name="ATTACK CLUSTER #C91 (Sybil Proxy Ring)",
-            entity_type="device",
-            entity_id="dev_991"
-        )
-        if stealth_cluster.cluster_id in CONTAINED_CLUSTERS:
-            stealth_cluster.status = "CONTAINED"
-            
-        if stealth_cluster.affected_accounts >= 1:
-            clusters.append(stealth_cluster)
-    except Exception as e:
-        print(f"[!] Stealth cluster query warning: {e}")
+    from sqlalchemy import func
+    from app.models.domain import Transaction
 
-    # 2. Discover shared IP clusters
-    try:
-        ip_cluster = NetworkRiskEngine.evaluate_attack_cluster(
-            db=db,
-            cluster_id="cls_ip_botnet_alpha",
-            cluster_name="Proxy IP Botnet Cluster Alpha",
-            entity_type="ip",
-            entity_id="ip_991"
-        )
-        if ip_cluster.cluster_id in CONTAINED_CLUSTERS:
-            ip_cluster.status = "CONTAINED"
+    # 1. Query top devices
+    top_devices = db.query(Transaction.device_id)\
+        .filter(Transaction.device_id.isnot(None))\
+        .group_by(Transaction.device_id)\
+        .order_by(func.count(func.distinct(Transaction.customer_id)).desc())\
+        .limit(5).all()
 
-        if ip_cluster.affected_accounts >= 1 and not any(c.cluster_id == ip_cluster.cluster_id for c in clusters):
-            clusters.append(ip_cluster)
-    except Exception as e:
-        print(f"[!] IP cluster query warning: {e}")
+    # 2. Query top IPs
+    top_ips = db.query(Transaction.ip_id)\
+        .filter(Transaction.ip_id.isnot(None))\
+        .group_by(Transaction.ip_id)\
+        .order_by(func.count(func.distinct(Transaction.customer_id)).desc())\
+        .limit(5).all()
 
-    # 3. Discover generic device clusters
-    try:
-        dev_cluster = NetworkRiskEngine.evaluate_attack_cluster(
-            db=db,
-            cluster_id="cls_dev_shared_ring",
-            cluster_name="Multi-Account Device Sharing Ring",
-            entity_type="device",
-            entity_id="dev_1"
-        )
-        if dev_cluster.cluster_id in CONTAINED_CLUSTERS:
-            dev_cluster.status = "CONTAINED"
-            
-        if not any(c.cluster_id == dev_cluster.cluster_id for c in clusters):
-            clusters.append(dev_cluster)
-    except Exception as e:
-        pass
-
-    # Ensure fallback fallback list if DB is empty
-    if not clusters:
-        clusters.append(
-            AttackCluster(
-                cluster_id="cls_c91_stealth_ring",
-                cluster_name="ATTACK CLUSTER #C91",
-                status="CONFIRMED",
-                severity="CRITICAL",
-                pattern_type="COORDINATED_FRAUD_RING",
-                affected_accounts=14,
-                affected_devices=2,
-                affected_ips=1,
-                affected_merchants=1,
-                affected_cards=1,
-                node_count=38,
-                edge_count=52,
-                transaction_count=38,
-                network_risk_score=94.0,
-                individual_risk_avg=32.0,
-                final_combined_risk=94.0,
-                risk_reasons=[
-                    "High device sharing: 14 accounts sharing 2 devices",
-                    "Datacenter proxy IP shared across 14 customer accounts",
-                    "Burst account creation & identical promo code usage"
-                ]
+    for dev in top_devices:
+        dev_id = dev.device_id
+        try:
+            c = NetworkRiskEngine.evaluate_attack_cluster(
+                db=db,
+                cluster_id=f"cls_dev_{dev_id[:8]}",
+                cluster_name=f"Device Cluster #{dev_id[:8]}",
+                entity_type="device",
+                entity_id=dev_id
             )
-        )
+            if c.cluster_id in CONTAINED_CLUSTERS:
+                c.status = "CONTAINED"
+            if c.affected_accounts >= 1:
+                clusters.append(c)
+        except Exception as e:
+            print(f"[!] Device cluster query warning: {e}")
+
+    for ip in top_ips:
+        ip_id = ip.ip_id
+        try:
+            c = NetworkRiskEngine.evaluate_attack_cluster(
+                db=db,
+                cluster_id=f"cls_ip_{ip_id[:8]}",
+                cluster_name=f"IP Cluster #{ip_id[:8]}",
+                entity_type="ip",
+                entity_id=ip_id
+            )
+            if c.cluster_id in CONTAINED_CLUSTERS:
+                c.status = "CONTAINED"
+            if c.affected_accounts >= 1 and not any(ext.cluster_id == c.cluster_id for ext in clusters):
+                clusters.append(c)
+        except Exception as e:
+            print(f"[!] IP cluster query warning: {e}")
 
     clusters.sort(key=lambda c: c.final_combined_risk, reverse=True)
     return clusters[:limit]

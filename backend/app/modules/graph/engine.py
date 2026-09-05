@@ -9,6 +9,7 @@ from app.models.domain import (
 )
 from app.modules.graph.schemas import GraphNode, GraphEdge, GraphData, TransactionInvestigation, NetworkSignals
 from app.modules.risk.router import score_transaction
+from app.modules.risk.descriptions import generate_transaction_description
 
 def compute_network_signals(db: Session, nodes: List[GraphNode], transactions: List[Transaction]) -> NetworkSignals:
     dev_ids = {n.id.replace("dev_", "") for n in nodes if n.type == "device"}
@@ -361,35 +362,38 @@ def get_transaction_investigation(db: Session, transaction_id: str) -> Transacti
     """
     tx = db.query(Transaction).filter(Transaction.id == transaction_id).first()
 
-    # Fallback synthetic transaction if given ID not in DB (for demo resiliency)
     if not tx:
-        amount = 1450.0
-        customer_id = "cust_12"
-        device_id = "dev_9"
-        ip_id = "ip_9"
-        payment_method_id = "pm_9"
-        merchant_id = "mch_1"
-        timestamp_str = datetime.utcnow().isoformat()
-        status = "APPROVED"
-        is_fraud = False
-        fraud_type = "CARD_TESTING"
-        account_age_minutes = 45
-        failed_attempts_recent = 4
-        country = "USA"
-    else:
-        amount = float(tx.amount)
-        customer_id = tx.customer_id
-        device_id = tx.device_id
-        ip_id = tx.ip_id
-        payment_method_id = tx.payment_method_id
-        merchant_id = tx.merchant_id
-        timestamp_str = tx.timestamp.isoformat() if tx.timestamp else datetime.utcnow().isoformat()
-        status = tx.status
-        is_fraud = tx.is_fraud
-        fraud_type = tx.fraud_type
-        account_age_minutes = tx.account_age_minutes
-        failed_attempts_recent = tx.failed_attempts_recent
-        country = tx.country
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail=f"Transaction {transaction_id} not found")
+
+    amount = float(tx.amount)
+    customer_id = tx.customer_id
+    device_id = tx.device_id
+    ip_id = tx.ip_id
+    payment_method_id = tx.payment_method_id
+    merchant_id = tx.merchant_id
+    timestamp_str = tx.timestamp.isoformat() if tx.timestamp else datetime.utcnow().isoformat()
+    status = tx.status
+    is_fraud = tx.is_fraud
+    fraud_type = tx.fraud_type
+    account_age_minutes = tx.account_age_minutes
+    failed_attempts_recent = tx.failed_attempts_recent
+    country = tx.country
+
+    ten_mins_ago = (tx.timestamp or datetime.utcnow()) - timedelta(minutes=10)
+    tx_last_10m = db.query(func.count(Transaction.id)).filter(
+        Transaction.customer_id == tx.customer_id,
+        Transaction.timestamp >= ten_mins_ago,
+        Transaction.timestamp <= (tx.timestamp or datetime.utcnow())
+    ).scalar() or 0
+
+    device_acc_count = db.query(func.count(func.distinct(Transaction.customer_id))).filter(
+        Transaction.device_id == tx.device_id
+    ).scalar() or 0 if tx.device_id else 0
+
+    ip_acc_count = db.query(func.count(func.distinct(Transaction.customer_id))).filter(
+        Transaction.ip_id == tx.ip_id
+    ).scalar() or 0 if tx.ip_id else 0
 
     # 1. Individual ML Risk Scoring (Step 3 engine)
     ind_payload = {
@@ -397,9 +401,9 @@ def get_transaction_investigation(db: Session, transaction_id: str) -> Transacti
         "amount": amount,
         "account_age_minutes": account_age_minutes,
         "failed_attempts_recent": failed_attempts_recent,
-        "transactions_last_10m": 8,
-        "device_account_count": 14,
-        "ip_account_count": 18,
+        "transactions_last_10m": tx_last_10m,
+        "device_account_count": device_acc_count,
+        "ip_account_count": ip_acc_count,
         "country": country,
         "fraud_type": fraud_type
     }
@@ -420,10 +424,6 @@ def get_transaction_investigation(db: Session, transaction_id: str) -> Transacti
     # Initial investigation graph is focused ONLY on the single transaction and its immediate entities (depth=1)
     nodes, edges, metrics = build_subgraph_for_entity(db, "transaction", transaction_id, depth=1, max_transactions=1)
     net_score, net_reasons, metrics = calculate_network_risk(db, "transaction", transaction_id)
-
-    # Force realistic boost for demo if network metrics show heavy sharing
-    if (metrics["customer_count"] > 5 or metrics["fraud_transaction_count"] > 1) and net_score < 75:
-        net_score = max(net_score, 88.0)
 
     if net_score >= 71:
         net_decision = "BLOCK_REVIEW"
@@ -456,6 +456,24 @@ def get_transaction_investigation(db: Session, transaction_id: str) -> Transacti
             n.risk_score = ind_score
         elif n.id.startswith("dev_") or n.id.startswith("ip_"):
             n.risk_score = net_score
+
+    tx_data = {
+        "amount": amount,
+        "fraud_type": fraud_type,
+        "status": status,
+        "account_age_minutes": account_age_minutes,
+        "failed_attempts_recent": failed_attempts_recent,
+        "country": country,
+        "device_id": device_id
+    }
+    risk_signals = {}
+    ns = metrics.get("network_signals")
+    if ns:
+        risk_signals = {
+            "device_account_count": getattr(ns, "device_account_count", 1),
+            "ip_account_count": getattr(ns, "ip_account_count", 1)
+        }
+    description = generate_transaction_description(tx_data, risk_signals, metrics)
 
     graph_data = GraphData(
         nodes=nodes,
@@ -490,6 +508,7 @@ def get_transaction_investigation(db: Session, transaction_id: str) -> Transacti
         risk_delta=risk_delta,
         risk_summary=risk_summary,
         traversal_breakdown=traversal_breakdown,
+        description=description,
         graph_data=graph_data
     )
 

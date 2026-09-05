@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
 from typing import Dict, Any
+from sqlalchemy.orm import Session
+from app.core.database import get_db
 from app.services.simulator import simulator_engine
 from app.modules.simulation.schemas import CounterfactualSimulationRequest, CounterfactualSimulationResult
 
@@ -32,12 +34,31 @@ async def change_scenario(payload: Dict[str, Any] = Body(...)):
     return {"message": f"Scenario changed to '{scenario}'", "status": simulator_engine.get_status()}
 
 @router.post("/run", response_model=CounterfactualSimulationResult)
-def run_simulation(request: CounterfactualSimulationRequest):
+def run_simulation(
+    request: CounterfactualSimulationRequest,
+    db: Session = Depends(get_db)
+):
     """Run counterfactual simulation to evaluate rule changes against historical dataset."""
+    from app.models.domain import Transaction
+    fraud_txs = db.query(Transaction).filter(Transaction.is_fraud == True).all()
+    
+    if not fraud_txs:
+        return CounterfactualSimulationResult(
+            baseline_fraud_loss=0.0,
+            simulated_fraud_loss=0.0,
+            prevented_loss=0.0,
+            false_positive_change_percent=0.0,
+            affected_transactions_count=0
+        )
+        
+    baseline_loss = sum(float(tx.amount) for tx in fraud_txs)
+    prevented_loss = sum(float(tx.amount) for tx in fraud_txs if tx.status == "DECLINED")
+    simulated_loss = baseline_loss - prevented_loss
+    
     return CounterfactualSimulationResult(
-        baseline_fraud_loss=12500.0,
-        simulated_fraud_loss=2100.0,
-        prevented_loss=10400.0,
-        false_positive_change_percent=0.12,
-        affected_transactions_count=430
+        baseline_fraud_loss=baseline_loss,
+        simulated_fraud_loss=simulated_loss,
+        prevented_loss=prevented_loss,
+        false_positive_change_percent=0.0,
+        affected_transactions_count=len([t for t in fraud_txs if t.status == "DECLINED"])
     )

@@ -6,6 +6,8 @@ import logging
 from datetime import datetime
 from typing import Dict, Any
 from app.core.websockets import ws_manager
+from app.models.domain import Transaction, Customer, Device, IPAddress, PaymentMethod, Merchant
+from app.core.database import SessionLocal
 
 logger = logging.getLogger("riskgraph.simulator")
 
@@ -81,6 +83,57 @@ class PaymentSimulatorEngine:
                 self.total_amount += event["amount"]
                 if event["is_fraud"]:
                     self.fraud_count += 1
+
+                # Persist to database
+                try:
+                    with SessionLocal() as db:
+                        m = db.query(Merchant).filter_by(id=event["merchant_id"]).first()
+                        if not m:
+                            m = Merchant(id=event["merchant_id"], name=f"Merchant {event['merchant_id']}", category="retail")
+                            db.add(m)
+                            
+                        c = db.query(Customer).filter_by(id=event["customer_id"]).first()
+                        if not c:
+                            c = Customer(id=event["customer_id"], email_domain="example.com")
+                            db.add(c)
+                            
+                        d = db.query(Device).filter_by(id=event["device_id"]).first()
+                        if not d:
+                            d = Device(id=event["device_id"], fingerprint_hash="hash", device_type="desktop", os_name="windows")
+                            db.add(d)
+                            
+                        ip = db.query(IPAddress).filter_by(id=event["ip_id"]).first()
+                        if not ip:
+                            ip = IPAddress(id=event["ip_id"], ip_address="127.0.0.1", country_code=event["country"])
+                            db.add(ip)
+                            
+                        pm = db.query(PaymentMethod).filter_by(id=event["payment_method_id"]).first()
+                        if not pm:
+                            pm = PaymentMethod(id=event["payment_method_id"], card_hash="hash", card_bin="123456")
+                            db.add(pm)
+                            
+                        tx = Transaction(
+                            id=event["id"],
+                            merchant_id=event["merchant_id"],
+                            customer_id=event["customer_id"],
+                            device_id=event["device_id"],
+                            ip_id=event["ip_id"],
+                            payment_method_id=event["payment_method_id"],
+                            amount=event["amount"],
+                            currency=event["currency"],
+                            timestamp=datetime.fromisoformat(event["timestamp"]),
+                            status=event["status"],
+                            payment_attempt_number=event["payment_attempt_number"],
+                            failed_attempts_recent=event["failed_attempts_recent"],
+                            account_age_minutes=event["account_age_minutes"],
+                            country=event["country"],
+                            is_fraud=event["is_fraud"],
+                            fraud_type=event["fraud_type"]
+                        )
+                        db.add(tx)
+                        db.commit()
+                except Exception as e:
+                    logger.error(f"Error persisting transaction to DB: {e}")
 
                 # Broadcast live payment event and stats over WebSocket
                 payload = {

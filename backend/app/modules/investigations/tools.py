@@ -15,20 +15,6 @@ class InvestigationTools:
     def get_transaction(db: Session, tx_id: str) -> Optional[Dict[str, Any]]:
         tx = db.query(Transaction).filter(Transaction.id == tx_id).first()
         if not tx:
-            # Fallback mock for stealth test IDs if DB is empty
-            if tx_id.startswith("tx_stealth_") or tx_id == "tx_stealth_01":
-                return {
-                    "id": tx_id,
-                    "amount": 49.99,
-                    "currency": "USD",
-                    "status": "FLAGGED",
-                    "timestamp": "2026-09-02 12:00:00",
-                    "customer_id": "cust_stealth_01",
-                    "device_id": "dev_stealth_c91_primary",
-                    "ip_address": "ip_stealth_c91_proxy",
-                    "merchant_id": "merch_gaming_vault",
-                    "risk_score": 35.0
-                }
             return None
 
         return {
@@ -50,14 +36,6 @@ class InvestigationTools:
     def get_customer(db: Session, cust_id: str) -> Optional[Dict[str, Any]]:
         cust = db.query(Customer).filter(Customer.id == cust_id).first()
         if not cust:
-            if "stealth" in cust_id:
-                return {
-                    "id": cust_id,
-                    "email_domain": "stealthbot.io",
-                    "risk_score": 32.0,
-                    "account_age_days": 1,
-                    "total_transactions": 3
-                }
             return None
 
         return {
@@ -72,15 +50,6 @@ class InvestigationTools:
     def get_device(db: Session, device_id: str) -> Optional[Dict[str, Any]]:
         dev = db.query(Device).filter(Device.id == device_id).first()
         if not dev:
-            if "stealth" in device_id or "dev_" in device_id:
-                return {
-                    "id": device_id,
-                    "device_fingerprint": "fp_sybil_ring_alpha_99",
-                    "device_type": "Desktop / Headless Chrome",
-                    "risk_score": 88.0,
-                    "connected_accounts_count": 14,
-                    "is_quarantined": False
-                }
             return None
 
         tx_count = db.query(Transaction).filter(Transaction.device_id == device_id).count()
@@ -96,16 +65,6 @@ class InvestigationTools:
     def get_ip(db: Session, ip_addr: str) -> Optional[Dict[str, Any]]:
         ip = db.query(IPAddress).filter((IPAddress.ip_address == ip_addr) | (IPAddress.id == ip_addr)).first()
         if not ip:
-            if "stealth" in ip_addr or "proxy" in ip_addr:
-                return {
-                    "ip_address": ip_addr,
-                    "is_datacenter": True,
-                    "is_vpn": True,
-                    "risk_score": 92.0,
-                    "country": "US",
-                    "is_quarantined": False,
-                    "associated_accounts_count": 14
-                }
             return None
 
         return {
@@ -122,15 +81,6 @@ class InvestigationTools:
         """
         if entity_type == "device":
             txs = db.query(Transaction).filter(Transaction.device_id == entity_id).all()
-            if not txs and "stealth" in entity_id:
-                return {
-                    "entity_type": "device",
-                    "entity_id": entity_id,
-                    "connected_accounts": [f"cust_stealth_{i:02d}" for i in range(1, 15)],
-                    "connected_ips": ["ip_stealth_c91_proxy"],
-                    "transaction_count": 38,
-                    "shared_coupon": "WELCOME50"
-                }
             accounts = list(set(t.customer_id for t in txs if t.customer_id))
             ips = list(set(t.ip_id for t in txs if t.ip_id))
             return {
@@ -143,14 +93,6 @@ class InvestigationTools:
         
         elif entity_type == "ip":
             txs = db.query(Transaction).filter(Transaction.ip_id == entity_id).all()
-            if not txs and "stealth" in entity_id:
-                return {
-                    "entity_type": "ip",
-                    "entity_id": entity_id,
-                    "connected_accounts": [f"cust_stealth_{i:02d}" for i in range(1, 15)],
-                    "connected_devices": ["dev_stealth_c91_primary"],
-                    "transaction_count": 38
-                }
             accounts = list(set(t.customer_id for t in txs if t.customer_id))
             devices = list(set(t.device_id for t in txs if t.device_id))
             return {
@@ -170,35 +112,13 @@ class InvestigationTools:
 
     @staticmethod
     def get_attack_cluster(db: Session, cluster_id: str) -> Optional[Dict[str, Any]]:
+        from app.modules.attacks.router import get_attack_cluster_by_id
+        from fastapi import HTTPException
         try:
-            cluster = NetworkRiskEngine.evaluate_attack_cluster(
-                db=db,
-                cluster_id=cluster_id,
-                cluster_name="Attack Cluster Evaluation",
-                entity_type="device",
-                entity_id="dev_stealth_c91_primary"
-            )
+            cluster = get_attack_cluster_by_id(cluster_id, db)
             return cluster.dict()
-        except Exception:
-            return {
-                "cluster_id": cluster_id,
-                "cluster_name": "ATTACK CLUSTER #C91 (Sybil Proxy Ring)",
-                "status": "CONFIRMED",
-                "severity": "CRITICAL",
-                "pattern_type": "COORDINATED_FRAUD_RING",
-                "affected_accounts": 14,
-                "affected_devices": 2,
-                "affected_ips": 1,
-                "transaction_count": 38,
-                "network_risk_score": 94.0,
-                "individual_risk_avg": 32.0,
-                "final_combined_risk": 94.0,
-                "risk_reasons": [
-                    "High device sharing: 14 accounts sharing 2 devices",
-                    "Datacenter proxy IP shared across 14 customer accounts",
-                    "Burst account creation & identical promo code usage"
-                ]
-            }
+        except HTTPException:
+            return None
 
     @staticmethod
     def get_risk_breakdown(db: Session, tx_id: str) -> Dict[str, Any]:

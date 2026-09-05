@@ -118,10 +118,6 @@ def detect_attack_clusters(db: Session, limit: int = 10) -> List[AttackCluster]:
         ))
         cluster_idx += 1
 
-    # Fallback default clusters if DB has limited entries (for rich hackathon presentation)
-    if len(clusters) < 3:
-        clusters.extend(get_fallback_clusters())
-
     return clusters[:limit]
 
 
@@ -238,6 +234,5 @@ def get_cluster_by_id(db: Session, cluster_id: str) -> Optional[AttackCluster]:
             edges=edges
         )
 
-    # Return fallback first cluster if ID not found
-    fallbacks = get_fallback_clusters()
-    return fallbacks[0]
+    from fastapi import HTTPException
+    raise HTTPException(status_code=404, detail=f"Attack cluster {cluster_id} not found")

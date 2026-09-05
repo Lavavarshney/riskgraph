@@ -59,6 +59,11 @@ from app.modules.demo.router import router as demo_router
 app.include_router(demo_router, prefix="/api/v1")
 app.include_router(demo_router)
 
+from app.modules.ledger.router import router as ledger_router
+app.include_router(ledger_router, prefix="/api/v1")
+app.include_router(ledger_router)
+
+
 # Root level health, risk scoring, & attack cluster endpoints for convenience
 @app.get("/health")
 def root_health():
