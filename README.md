@@ -1,11 +1,11 @@
-# 🛡️ RISKGRAPH — Real-Time Payment Graph Intelligence & Autonomous Fraud Containment Engine
+# RISKGRAPH — Real-Time Payment Graph Intelligence & Autonomous Fraud Containment Engine
 
 > **Submission for Razorpay AI Hackathon 2026**  
 > *Transforming point-in-time payment scoring into multi-hop relational graph intelligence and minimum-cost choke point containment.*
 
 ---
 
-## 🔗 Live Deployments & Demos
+##  Live Deployments & Demos
 
 | Component | Target URL | Status |
 |---|---|---|
@@ -16,7 +16,7 @@
 
 ---
 
-## 📍 Problem Statement: The Blindspot of Point-in-Time Scoring
+##  Problem Statement: The Blindspot of Point-in-Time Scoring
 
 Traditional payment gateway fraud detection relies heavily on **isolated, point-in-time machine learning models**. When a transaction arrives at the gateway, the model evaluates its immediate features: transaction amount, currency, basic velocity, and card BIN.
 
@@ -42,7 +42,7 @@ Traditional payment gateway fraud detection relies heavily on **isolated, point-
 
 ---
 
-## 💡 The Solution: RiskGraph Architecture
+##  The Solution: RiskGraph Architecture
 
 **RiskGraph** bridges point-in-time ML scoring with **Real-Time Multi-Hop Graph Intelligence**. Instead of analyzing payments as isolated events, RiskGraph continuously constructs a dynamic, 2-hop topological network connecting **Customers, Devices, IP Addresses, Payment Methods, Coupons, and Merchants**.
 
@@ -77,7 +77,7 @@ graph TD
 
 ---
 
-## ⚡ Key Capabilities & Technical Innovations
+##  Key Capabilities & Technical Innovations
 
 ### 1. 🕸️ Multi-Hop Graph Topology Traversal Engine
 - Performs **2-hop relational expansion** around any transaction, device, IP, or customer in real-time.
@@ -89,28 +89,28 @@ graph TD
   - `Transaction -> Merchant (PROCESSED_BY)`
 - Dynamically computes entity sharing ratios (e.g. shared device account ratio = 0.85, connected transaction volume = 38).
 
-### 2. ⚡ Non-Linear Risk Escalation Formula
+### 2.  Non-Linear Risk Escalation Formula
 Combines isolated ML transaction score with behavioral anomalies and network graph signals into a non-linear combined risk score:
 
 $$\text{Final Risk} = \min\Big(100, \max(\text{Risk}_{\text{tx}}, \text{Risk}_{\text{beh}}) \times 0.35 + \text{Risk}_{\text{network}} \times 0.65 + \text{Cluster Amplification}\Big)$$
 
 - **Result**: Escalates stealth payments from an individual score of **35.0/100** to a network risk score of **94.0/100 (CRITICAL)**.
 
-### 3. 🎯 Minimum-Cost Choke Point Containment Optimizer
+### 3.  Minimum-Cost Choke Point Containment Optimizer
 Identifies the single highest-coverage, lowest-friction intervention choke point to disrupt an attack cluster rather than blocking hundreds of individual user accounts or cards.
 - Example: `QUARANTINE_DEVICE dev_991` neutralizes **86.8% of the attack vector** while preventing **$4,164.00** in simulated fraud loss.
 
-### 4. 🤖 Evidence-Grounded AI Investigation Agent
+### 4.  Evidence-Grounded AI Investigation Agent
 Provides strict, hallucination-free AI reports for fraud analysts.
 - Queries 10 empirical backend tools directly from PostgreSQL and the Network Risk Engine.
 - Generates deterministic, evidence-grounded summary reports, cited graph evidence bullets, attack pattern classification, and merchant policy checks.
 
-### 5. 🛡️ Merchant Policy Rules Engine & Immutable Audit Ledger
+### 5.  Merchant Policy Rules Engine & Immutable Audit Ledger
 - Allows merchants to configure auto-containment guardrails (`individual_risk_threshold`, `network_risk_threshold`, `device_quarantine_threshold`, `maximum_transaction_amount`).
 - Automatically routes high-impact containment actions requiring manual review.
 - Writes every action to an **immutable `ActionLog` table** in PostgreSQL for compliance auditing.
 
-### 6. 🔄 Live Telemetry & Payment Scenario Simulator
+### 6.  Live Telemetry & Payment Scenario Simulator
 Integrated real-time payment simulator with 6 preset traffic scenarios:
 - `normal` (Baseline payment stream)
 - `card_testing` (High-velocity micro-transaction botnet)
@@ -121,7 +121,7 @@ Integrated real-time payment simulator with 6 preset traffic scenarios:
 
 ---
 
-## 📊 Model Evaluation & Benchmarks
+## Model Evaluation & Benchmarks
 
 Evaluated on a benchmark dataset of **50,000 payment records** (45,000 train / 5,000 test):
 
@@ -135,7 +135,7 @@ Evaluated on a benchmark dataset of **50,000 payment records** (45,000 train / 5
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+##  Tech Stack & Architecture
 
 ### Backend (FastAPI & ML Engine)
 - **Framework**: Python 3.11 / FastAPI
@@ -153,7 +153,7 @@ Evaluated on a benchmark dataset of **50,000 payment records** (45,000 train / 5
 
 ---
 
-## 💻 Local Setup & Quick Start
+##  Local Setup & Quick Start
 
 ### Prerequisites
 - Python 3.10+
@@ -203,7 +203,7 @@ Frontend workspace will run at `http://localhost:3000`.
 
 ---
 
-## 📡 API Reference Overview
+##  API Reference Overview
 
 | Endpoint | Method | Description |
 |---|---|---|
@@ -223,7 +223,7 @@ Frontend workspace will run at `http://localhost:3000`.
 
 ---
 
-## 🏆 Razorpay AI Hackathon Submission Credits
+##  Razorpay AI Hackathon Submission Credits
 
 Developed with ❤️ for the **Razorpay AI Hackathon 2026**.
 
